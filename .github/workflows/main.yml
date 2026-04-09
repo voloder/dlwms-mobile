@@ -3,7 +3,7 @@ name: Flutter Tagged Alpha Build
 on:
   push:
     tags:
-      - "v*-alpha.*"
+      - "v*"
 
 jobs:
   build:
