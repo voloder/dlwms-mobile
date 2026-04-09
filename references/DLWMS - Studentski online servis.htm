@@ -1,0 +1,641 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>
+	DLWMS - Studentski online servis
+</title><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Reset all CSS rule -->
+    <link rel="stylesheet" href="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/reset.css">
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/dlwms.base.css" media="screen, projection"><link rel="stylesheet" href="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/dlwms.fonts.css" media="screen, projection"><link rel="stylesheet" href="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/dlwms.layout.css" media="screen, projection"><link rel="stylesheet" href="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/dlwms.forms.css" media="screen, projection"><link rel="stylesheet" href="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/dlwms.screen.css" media="screen, projection"><link rel="stylesheet" href="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/dlwms.colors.css" media="screen, projection"><link rel="stylesheet" href="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/dlwms3.css" media="screen, projection">
+    </head><body><span id="tabId" style="display: none;">home</span>
+
+    <script type="text/javascript">
+        function setActiveMenu() {
+            var control = document.getElementById('tabId');
+            if (control != null) {
+                var menuid = control.innerText;
+                var menu = document.getElementById(menuid);
+                menu.className = menuid + ' selected';
+            }
+        }
+        function validateHTML(id) {
+            var bezHtml = document.getElementById(id);
+            bezHtml.value = bezHtml.value.replace(/(<([^>]+)>)/ig, "");
+        }
+        window.onload = setActiveMenu;
+    </script>
+
+
+    <form method="post" action="./default.aspx" id="form1">
+<div class="aspNetHidden">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="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">
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['form1'];
+if (!theForm) {
+    theForm = document.form1;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/WebResource.js" type="text/javascript"></script>
+
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="6A295697">
+	<input type="hidden" name="__PREVIOUSPAGE" id="__PREVIOUSPAGE" value="NXz2AQ-4zToaEsDneYXZHNjCeOYdk4Tl8jG70zNdXV0zFuhAujmKTXuYBDtSUTwW0hw3ulsQKOjpkYwshEavTmGDeFx3T7kzRfG7VsOokmI1">
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="dW5wWcruLc2JxAsMmztKNdTERPoPr1KGGY1K8iuOCN15sw6E/9CphwRs9GpT2T8GbNOdHd7dNsgJ8B3erSj2TGA/VjRczaRTjv3cIatN1bbAns/dolAcY/Mln84qnO0RM947Cb9cW7M9kJNBJ8BPMQVNxoSwUWaWO/ak4S/FiOjZVu/zTgJhIf0IcJZP6Gr40I5RvRK4udQm7X5feV31mDEZmwqoXZNlQbEb2FNCLYW4yf6TuBxCK6pf2lxS3P3QyWPAOFTsvrNLT8Pi/RfMtWwtrlJFlMhVQn67mRaIt6Uo1+UxcEzIy1oKc+tMihnNm53t9qj49h95l3J/T2UQcsI/M24gDcFIp4KWzw8UXaF6ytMx8iHlWkruQFJbOlmLaStwcN2tqPGd+Lkq/XlzuTgFPNEbr1ZZ/k9fo3ywwU9wiKg+W1Yt1UYajJCvWknxkqjB8Rr6tb8pirpAueqN60QVwrs2ZXrYNsr/h8vibmGxF6Iz41EPWmu5iemQczrWMDaXyD+kLsy6aabzunkNpA==">
+</div>
+        <div id="header">
+            <div class="tools">
+                <a class="logo" href="https://www.fit.ba/student/default.aspx">
+                    <img src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/logo.png" alt="CMS-One" width="176" height="32"></a>
+                <div class="tools-account">
+                    <span>Dobrodošli,
+                    <a id="lbtnPrijavljen" href='javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions("ctl00$lbtnPrijavljen", "", false, "", "licni_podaci.aspx", false, true))'>Admir Voloder</a>
+                        <a href="https://www.fit.ba/student/logout.aspx" target="_self" class="button blue">Odjava</a></span>
+                </div>
+            </div>
+            <!--
+        TOP MENU
+                  -->
+            <ul class="nav mainmenu" id="menu">
+                <li id="home" class="home selected"><a href="https://www.fit.ba/student/default.aspx"> Početna</a></li>
+                <li id="board" class="board"><a href="https://www.fit.ba/student/nastava/index.aspx">Nastava</a>
+                    <a href="https://www.fit.ba/student/default.aspx?novosti=1" title="Prikaži nove obavijesti">
+                        </a></li>
+                <li id="test" class="test"><a href="https://www.fit.ba/student/EUSASStudentHome.aspx" target="_blank">Testovi</a></li>
+                <li id="dok" class="dok"><a href="https://www.fit.ba/student/nastava/dokumenti/pretraga.aspx">Dokumenti</a>
+                </li>
+                <li id="dates" class="dates"><a href="https://www.fit.ba/student/rokovi/index.aspx">Termini</a></li>
+                <li id="works" class="works"><a href="https://www.fit.ba/student/nastava/moji_radovi.aspx">Moji radovi</a></li>
+                <li id="stats" class="stats"><a href="https://www.fit.ba/student/nastava/prisustvo.aspx"> Prisustva</a></li>
+                <li id="grades" class="grades"><a href="https://www.fit.ba/student/evaluacija/uspjeh.aspx">Uspjeh</a></li>
+                <li id="accout" class="accout"><a href="https://www.fit.ba/student/licni_podaci.aspx">Moji podaci</a></li>
+                <li id="certificate" class="certificate"><a href="https://www.fit.ba/student/potvrde/index.aspx">Potvrde</a>
+                    </li>
+             
+                <li id="video" class="video"><a href="https://www.youtube.com/user/eduFITba" target="_blank">FIT video</a></li>
+                <li id="forum" class="forum"><a href="https://www.fit.ba/forum" target="_blank">FIT forum</a></li>
+            </ul>
+            <div class="clear">
+            </div>
+        </div>
+        <div class="wrapper">
+            <div id="content-wrapper">
+                <div class="form-head" style="height: 35px; width: 700px; margin-top: -0.5em; margin-bottom: -0.5em;">
+                    <div id="Div1" style="margin-bottom: -13px; width: 696px; height: 24px" class="input-box">
+                        <p class="path">
+                            <span id="Label1" style="color:#666666;">Nalazite se u:</span>
+                            <span id="siteMapa"><a href="#siteMapa_SkipLink" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">Skip Navigation Links</a><a id="siteMapa_SkipLink"></a></span>
+                        </p>
+                    </div>
+                </div>
+                <div id="content-header">
+                </div>
+                
+    <div style="height: 14px">
+    </div>
+    <div class="blocktitle" style="margin-bottom: -5em;">
+        <a id="HyperLink7" class="aside" href="https://www.fit.ba/student/obavijesti/arhiva.aspx">Arhiva »</a>
+        <h1>
+            <span id="Label2">Obavijesti</span>&nbsp;
+        </h1>
+    </div>
+    <div class="clear">
+    </div>
+    <ul class="messages">
+        
+    </ul>
+    <table cellspacing="0" id="dgObavijesti" style="width:100%;border-collapse:collapse;">
+	<tbody><tr>
+		<td>&nbsp;</td>
+	</tr><tr>
+		<td>
+                    <ul class="newslist">
+                        <li>
+                            <table>
+                                <tbody><tr>
+                                    <td>
+                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/1news.png">
+                                    </td>
+                                    <td style="padding-left: 10px; vertical-align: top">
+                                        <a id="lnkNaslov" class="linkButton" href="https://www.fit.ba/student/obavijesti/opsirnije.aspx?sqs=KTLAgwGM7BNgGJzOPTfRJ8Xk2cW9xCyPmToUSsBCVB6GAGesPhG3ExfoVVS%2blKwOHQE7Mgs77cU%23%23EQ%23%23">Nastava za 08.04.</a>
+                                        <br>
+                                        <span id="lblDatum" class="meta">07.04.2026 11:27 -</span>
+                                        <span id="lblPredmet" class="meta">Kompjuterska grafika</span>
+                                        <span id="Label4" class="meta">Napisao/la</span>
+                                        <a id="HyperLink9" class="meta" href="mailto:senad.Rahimic@unmo.ba">Senad Rahimić</a>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                            <div class="abstract" style="margin-top: -10px">
+                                
+	Nastava za 08.04. za inclas studente od 11 sati je online
+<br>
+	Nastava za 08.04. za DL studente od 14 sati po rasporedu
+<br>
+	&nbsp;
+
+                            </div>
+                        </li>
+                    </ul>
+                </td>
+	</tr><tr>
+		<td>
+                    <ul class="newslist">
+                        <li>
+                            <table>
+                                <tbody><tr>
+                                    <td>
+                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/1news.png">
+                                    </td>
+                                    <td style="padding-left: 10px; vertical-align: top">
+                                        <a id="lnkNaslov" class="linkButton" href="https://www.fit.ba/student/obavijesti/opsirnije.aspx?sqs=KTLAgwGM7BNgGJzOPTfRJ6vyE9wlWqsSD4%2bT5bStDdaVZkHumq%2fFBatWAFyoFLS4D9Wrgvz4Q3o%23%23EQ%23%23">KGR - Prijava template</a>
+                                        <br>
+                                        <span id="lblDatum" class="meta">06.04.2026 13:42 -</span>
+                                        <span id="lblPredmet" class="meta">Kompjuterska grafika</span>
+                                        <span id="Label4" class="meta">Napisao/la</span>
+                                        <a id="HyperLink9" class="meta" href="mailto:mohamed@edu.fit.ba">Mohamed El-Zayat</a>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                            <div class="abstract" style="margin-top: -10px">
+                                
+	Pozdrav svima,
+
+	Postavio sam template obrasca za prijavu seminarskog rada. Za timove 
+koji planiraju raditi seminarski rad, molim vas ispunite obrazac i 
+pošaljite ga putem emaila na  ...
+                            </div>
+                        </li>
+                    </ul>
+                </td>
+	</tr><tr>
+		<td>
+                    <ul class="newslist">
+                        <li>
+                            <table>
+                                <tbody><tr>
+                                    <td>
+                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/1news.png">
+                                    </td>
+                                    <td style="padding-left: 10px; vertical-align: top">
+                                        <a id="lnkNaslov" class="linkButton" href="https://www.fit.ba/student/obavijesti/opsirnije.aspx?sqs=KTLAgwGM7BNgGJzOPTfRJ5mbtCb4ras0Q0NVbOvDAWkAbvKM9R2%2beCioFBMD4pLlvOGu0B5mWRE%23%23EQ%23%23">Raspored parcijalnih ispita za ljetni semestar ak. 2025/26. godine</a>
+                                        <br>
+                                        <span id="lblDatum" class="meta">03.04.2026 16:16 -</span>
+                                        <span id="lblPredmet" class="meta"></span>
+                                        <span id="Label4" class="meta">Napisao/la</span>
+                                        <a id="HyperLink9" class="meta" href="mailto:iris@edu.fit.ba">Iris Memić</a>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                            <div class="abstract" style="margin-top: -10px">
+                                
+	
+
+                            </div>
+                        </li>
+                    </ul>
+                </td>
+	</tr><tr>
+		<td>
+                    <ul class="newslist">
+                        <li>
+                            <table>
+                                <tbody><tr>
+                                    <td>
+                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/1news.png">
+                                    </td>
+                                    <td style="padding-left: 10px; vertical-align: top">
+                                        <a id="lnkNaslov" class="linkButton" href="https://www.fit.ba/student/obavijesti/opsirnije.aspx?sqs=KTLAgwGM7BNgGJzOPTfRJ0min0FXZh87%2bbv6GWM6rqngVdPndo2gJmpuuB0wELstbe%2fyWB1SsvM%23%23EQ%23%23">WRD - Rezultati Ispita</a>
+                                        <br>
+                                        <span id="lblDatum" class="meta">03.04.2026 09:42 -</span>
+                                        <span id="lblPredmet" class="meta">Web razvoj i dizajn</span>
+                                        <span id="Label4" class="meta">Napisao/la</span>
+                                        <a id="HyperLink9" class="meta" href="mailto:azra@fit.ba">Azra Smajić</a>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                            <div class="abstract" style="margin-top: -10px">
+                                
+	
+                            </div>
+                        </li>
+                    </ul>
+                </td>
+	</tr><tr>
+		<td>
+                    <ul class="newslist">
+                        <li>
+                            <table>
+                                <tbody><tr>
+                                    <td>
+                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/1news.png">
+                                    </td>
+                                    <td style="padding-left: 10px; vertical-align: top">
+                                        <a id="lnkNaslov" class="linkButton" href="https://www.fit.ba/student/obavijesti/opsirnije.aspx?sqs=KTLAgwGM7BNgGJzOPTfRJ%2fzBO9XoIWYaeMz6bzbSE%2bC8O%2f3R%2bZCML7Bd9%2f6DeDy%2fo1ebijwW7zs%23%23EQ%23%23">VAŽNO!!! Zajednički projekat svih studenata I godine</a>
+                                        <br>
+                                        <span id="lblDatum" class="meta">02.04.2026 19:41 -</span>
+                                        <span id="lblPredmet" class="meta">Uvod u marketing</span>
+                                        <span id="Label4" class="meta">Napisao/la</span>
+                                        <a id="HyperLink9" class="meta" href="mailto:veldin.ovcina@unmo.ba">Veldin Ovčina</a>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                            <div class="abstract" style="margin-top: -10px">
+                                
+	Poštovani studenti,
+<br>
+	&nbsp;
+<br>
+	Na Teams-u predmeta postavljena je informacija o planiranim zajedničkim aktivnostima na predmetu.
+
+                            </div>
+                        </li>
+                    </ul>
+                </td>
+	</tr><tr>
+		<td>
+                    <ul class="newslist">
+                        <li>
+                            <table>
+                                <tbody><tr>
+                                    <td>
+                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/1news.png">
+                                    </td>
+                                    <td style="padding-left: 10px; vertical-align: top">
+                                        <a id="lnkNaslov" class="linkButton" href="https://www.fit.ba/student/obavijesti/opsirnije.aspx?sqs=KTLAgwGM7BN8nc6DXko4BLgi7C83Bu%2bgEQq%2fE00nIs5tjtfR6qPJgfMsU%2fPQ3x2mcEW%2fg8kBz4Q%23%23EQ%23%23">Upis ocjena :: PRII :: PRIII :: RSI :: RSII</a>
+                                        <br>
+                                        <span id="lblDatum" class="meta">02.04.2026 14:00 -</span>
+                                        <span id="lblPredmet" class="meta"></span>
+                                        <span id="Label4" class="meta">Napisao/la</span>
+                                        <a id="HyperLink9" class="meta" href="mailto:denis@edu.fit.ba">Denis Mušić</a>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                            <div class="abstract" style="margin-top: -10px">
+                                
+	Upis ocjena iz predmeta PRII, PRIII, RSI i RSII, studentima koji su 
+ispunili sve obavze predviđene silabusom predmeta će se organizovati u 
+petak (03.04)&nbsp;u 12:30h. Realizacija pomenutih  ...
+                            </div>
+                        </li>
+                    </ul>
+                </td>
+	</tr><tr>
+		<td>
+                    <ul class="newslist">
+                        <li>
+                            <table>
+                                <tbody><tr>
+                                    <td>
+                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/2Get-Info.png">
+                                    </td>
+                                    <td style="padding-left: 10px; vertical-align: top">
+                                        <a id="lnkNaslov" class="linkButton" href="https://www.fit.ba/student/obavijesti/opsirnije.aspx?sqs=KTLAgwGM7BNgGJzOPTfRJ0fbW9vhntVDQFnAtOvBBkx%2bNXoKWtuXIDEFOP11e5h78z8oAw2VPeE%23%23EQ%23%23">PRII :: in-class vježbe :: 02.04.2026</a>
+                                        <br>
+                                        <span id="lblDatum" class="meta">02.04.2026 10:44 -</span>
+                                        <span id="lblPredmet" class="meta">Programiranje II</span>
+                                        <span id="Label4" class="meta">Napisao/la</span>
+                                        <a id="HyperLink9" class="meta" href="mailto:kemal.maric@edu.fit.ba">Kemal Marić</a>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                            <div class="abstract" style="margin-top: -10px">
+                                
+	Poštovani studenti,&nbsp;&nbsp;
+<br>
+	Zbog takmičenja iz informatike, današnje in-class vježbe se odgađaju.&nbsp;
+<br>
+	Hvala na razumijevanju i srdačan pozdrav,<br>
+	<br>
+	Kemal
+
+                            </div>
+                        </li>
+                    </ul>
+                </td>
+	</tr><tr>
+		<td>
+                    <ul class="newslist">
+                        <li>
+                            <table>
+                                <tbody><tr>
+                                    <td>
+                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/1news.png">
+                                    </td>
+                                    <td style="padding-left: 10px; vertical-align: top">
+                                        <a id="lnkNaslov" class="linkButton" href="https://www.fit.ba/student/obavijesti/opsirnije.aspx?sqs=KTLAgwGM7BNgGJzOPTfRJ7nAnxe6R7Zv%2b0WYAnWeCQVr8%2be%2bFFCsVKf2RhWQSZ%2bJDfDaOC4bKF0%23%23EQ%23%23">KGR vježba 02.04.2026</a>
+                                        <br>
+                                        <span id="lblDatum" class="meta">02.04.2026 08:48 -</span>
+                                        <span id="lblPredmet" class="meta">Kompjuterska grafika</span>
+                                        <span id="Label4" class="meta">Napisao/la</span>
+                                        <a id="HyperLink9" class="meta" href="mailto:mohamed@edu.fit.ba">Mohamed El-Zayat</a>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                            <div class="abstract" style="margin-top: -10px">
+                                
+	Poštovanje svima,
+<br>
+	Zbog takmičenja informatika na fakultetu, nastava danas počinje u 13:15.&nbsp;
+<br>
+	Hvala na razumijevanju,
+<br>
+	Lijep pozdrav&nbsp;<br>
+	Mohamed
+
+                            </div>
+                        </li>
+                    </ul>
+                </td>
+	</tr><tr>
+		<td>
+                    <ul class="newslist">
+                        <li>
+                            <table>
+                                <tbody><tr>
+                                    <td>
+                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/1news.png">
+                                    </td>
+                                    <td style="padding-left: 10px; vertical-align: top">
+                                        <a id="lnkNaslov" class="linkButton" href="https://www.fit.ba/student/obavijesti/opsirnije.aspx?sqs=KTLAgwGM7BNgGJzOPTfRJ96GtoX7y%2brBQmhPgMQB6p7OJ3z66hiWCw%2fZVxTLTvo2cXHnMB17ZFA%23%23EQ%23%23">BPI :: Inclass vježbe :: 02.04.2026</a>
+                                        <br>
+                                        <span id="lblDatum" class="meta">02.04.2026 08:31 -</span>
+                                        <span id="lblPredmet" class="meta">Baze podataka II</span>
+                                        <span id="Label4" class="meta">Napisao/la</span>
+                                        <a id="HyperLink9" class="meta" href="mailto:elda.sultic@edu.fit.ba">Elda Sultić</a>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                            <div class="abstract" style="margin-top: -10px">
+                                
+	Vježbe iz predmeta Baze podataka II će obje grupe danas imati u terminu od 13:15 do 15:00.&nbsp;
+
+                            </div>
+                        </li>
+                    </ul>
+                </td>
+	</tr><tr>
+		<td>
+                    <ul class="newslist">
+                        <li>
+                            <table>
+                                <tbody><tr>
+                                    <td>
+                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/4Alert.png">
+                                    </td>
+                                    <td style="padding-left: 10px; vertical-align: top">
+                                        <a id="lnkNaslov" class="linkButton" href="https://www.fit.ba/student/obavijesti/opsirnije.aspx?sqs=KTLAgwGM7BNgGJzOPTfRJ07IkYBxPQGDLH88yzj96b%2bqJVu32thgSgd0daluaLgw6tA6ZjVhYvA%23%23EQ%23%23">ADS - Obaviještene za InClass vježbe planirane 02.04.2026</a>
+                                        <br>
+                                        <span id="lblDatum" class="meta">02.04.2026 08:26 -</span>
+                                        <span id="lblPredmet" class="meta">Analiza i dizajn softvera</span>
+                                        <span id="Label4" class="meta">Napisao/la</span>
+                                        <a id="HyperLink9" class="meta" href="mailto:berun.agic@edu.fit.ba">Berun Agić</a>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                            <div class="abstract" style="margin-top: -10px">
+                                
+	Zbog organiziranja takmičenja u prostorijama fakulteta današnje 
+planirane InClass vježbe iz predmeta ADS će biti otkazane. Za termin 
+nadoknade studenti će biti naknadno obaviješteni.
+
+                            </div>
+                        </li>
+                    </ul>
+                </td>
+	</tr><tr class="pgr" align="right">
+		<td><span>1</span>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$dgObavijesti$ctl14$ctl01','')">2</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$dgObavijesti$ctl14$ctl02','')">3</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$dgObavijesti$ctl14$ctl03','')">4</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$dgObavijesti$ctl14$ctl04','')">5</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$dgObavijesti$ctl14$ctl05','')">6</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$dgObavijesti$ctl14$ctl06','')">7</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$dgObavijesti$ctl14$ctl07','')">8</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$dgObavijesti$ctl14$ctl08','')">9</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$dgObavijesti$ctl14$ctl09','')">10</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$dgObavijesti$ctl14$ctl10','')">...</a></td>
+	</tr>
+</tbody></table>
+    <br>
+    <br>
+
+            </div>
+            <div id="sidebar">
+                <div class="form-head" style="height: 35px; margin-top: -0.5em; margin-bottom: -0.5em;">
+                    <ul>
+                        <li>
+                            <div class="input-box" style="width: 170px; height: 24px;">
+                                <input name="ctl00$txtSearchObavijesti" type="text" value="Pretraga obavijesti..." id="txtSearchObavijesti" onclick="if(this.value=='Pretraga obavijesti...')this.value='';" onblur="if(this.value=='') this.value='Pretraga obavijesti...';" onchange="javascript:return validateHTML(this.id);" style="font-size:Small;font-style:italic;width:150px;">
+                            </div>
+                            <input type="image" name="ctl00$Image1" id="Image1" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/icon-search.gif" style="margin-left: 173px; width: 23px; height: 23px;">
+                            <br>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Sidebar block -->
+                <div class="sidebar-block">
+                    <div id="pnlUpozorenja" style="margin-top: 1em">
+	
+                        <div class="blocktitle" style="padding: 0 0 .5em 0;">
+                            <h1 style="margin-bottom: 0.1em">Upozorenja
+                            </h1>
+                        </div>
+                        
+                        
+                                <ul class="quick-alerts" style="margin-bottom: -0.5em">
+                                    <li class="warn"><a><span class="icon ico-clock"></span><span class="title">
+                                        <span id="lblObavijest">Ispit je za 8 dana!</span>
+                                    </span><span class="meta">
+                                        <span id="lblPredmet" style="display:inline-block;width:150px;">Primijenjena statistika</span>
+                                    </span></a></li>
+                                </ul>
+                            
+                        
+                        <div id="pnlLozinkaNE">
+		
+                            <ul class="quick-alerts">
+                                <li class="note"><a><span class="icon ico-alert"></span>
+                                    <span class="title">
+                                        <span id="lblLozinkaNE" style="display:inline-block;width:150px;margin-top: 5px">Lozinka ne vrijedi za:<br>- Forum</span>
+                                    </span></a></li>
+                            </ul>
+                        
+	</div>
+                    
+</div>
+                </div>
+                <!-- Sidebar block -->
+                <div class="sidebar-block">
+                    <div id="pnlMaterijali">
+	
+                        <div class="blocktitle">
+                            <a class="aside" href="https://www.fit.ba/student/nastava/dokumenti/pretraga.aspx">Arhiva »</a>
+                            <h1 style="margin-bottom: 0.4em">Zadnji dokumenti
+                            </h1>
+                        </div>
+                        <div class="form-head">
+                            <table cellspacing="0" id="gridMaterijali" style="border-collapse:collapse;margin-bottom: 0;">
+		<tbody><tr>
+			<td style="width:200px;">
+                                            <table>
+                                                <tbody><tr>
+                                                    <td>
+                                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/file_pdf.png" style="height:38px;width:38px;">
+                                                    </td>
+                                                    <td style="padding-left: 10px; vertical-align: top">
+                                                        <a id="lbtnNaslov" class="linkButton" title="KGR - P5 - PinholKmaera - 2025/2026" href="javascript:__doPostBack('ctl00$gridMaterijali$ctl03$lbtnNaslov','')" style="font-size:Small;">KGR - P5 - PinholK...</a>
+                                                        <br>
+                                                        <span id="lblPredmetNaziv" style="color:#777777;font-size:Smaller;font-style:italic;">KGR</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody></table>
+                                        </td>
+		</tr><tr>
+			<td style="width:200px;">
+                                            <table>
+                                                <tbody><tr>
+                                                    <td>
+                                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/file_pdf.png" style="height:38px;width:38px;">
+                                                    </td>
+                                                    <td style="padding-left: 10px; vertical-align: top">
+                                                        <a id="lbtnNaslov" class="linkButton" title="ADS - V1 - UML - 2025/2026" href="javascript:__doPostBack('ctl00$gridMaterijali$ctl04$lbtnNaslov','')" style="font-size:Small;">ADS - V1 - UML - 2...</a>
+                                                        <br>
+                                                        <span id="lblPredmetNaziv" style="color:#777777;font-size:Smaller;font-style:italic;">ADS</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody></table>
+                                        </td>
+		</tr><tr>
+			<td style="width:200px;">
+                                            <table>
+                                                <tbody><tr>
+                                                    <td>
+                                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/file_pdf.png" style="height:38px;width:38px;">
+                                                    </td>
+                                                    <td style="padding-left: 10px; vertical-align: top">
+                                                        <a id="lbtnNaslov" class="linkButton" title="ADS - P5 - SSD - 2025/2026" href="javascript:__doPostBack('ctl00$gridMaterijali$ctl05$lbtnNaslov','')" style="font-size:Small;">ADS - P5 - SSD - 2...</a>
+                                                        <br>
+                                                        <span id="lblPredmetNaziv" style="color:#777777;font-size:Smaller;font-style:italic;">ADS</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody></table>
+                                        </td>
+		</tr><tr>
+			<td style="width:200px;">
+                                            <table>
+                                                <tbody><tr>
+                                                    <td>
+                                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/file_pdf.png" style="height:38px;width:38px;">
+                                                    </td>
+                                                    <td style="padding-left: 10px; vertical-align: top">
+                                                        <a id="lbtnNaslov" class="linkButton" title="ADS - P4 - Domain model- 2025/2026" href="javascript:__doPostBack('ctl00$gridMaterijali$ctl06$lbtnNaslov','')" style="font-size:Small;">ADS - P4 - Domain ...</a>
+                                                        <br>
+                                                        <span id="lblPredmetNaziv" style="color:#777777;font-size:Smaller;font-style:italic;">ADS</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody></table>
+                                        </td>
+		</tr><tr>
+			<td style="width:200px;">
+                                            <table>
+                                                <tbody><tr>
+                                                    <td>
+                                                        <img id="imgType" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/box_zip.png" style="height:38px;width:38px;">
+                                                    </td>
+                                                    <td style="padding-left: 10px; vertical-align: top">
+                                                        <a id="lbtnNaslov" class="linkButton" title="KGR - Prijava template" href="javascript:__doPostBack('ctl00$gridMaterijali$ctl07$lbtnNaslov','')" style="font-size:Small;">KGR - Prijava temp...</a>
+                                                        <br>
+                                                        <span id="lblPredmetNaziv" style="color:#777777;font-size:Smaller;font-style:italic;">KGR</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody></table>
+                                        </td>
+		</tr><tr class="pgr" align="left">
+			<td><span>1</span></td>
+		</tr>
+	</tbody></table>
+                            <a id="lbtnDownloadAll" href="javascript:__doPostBack('ctl00$lbtnDownloadAll','')" style="float: right;">Download All</a>
+                            <div class="clear">
+                            </div>
+                        </div>
+                    
+</div>
+                    <div class="clear">
+                    </div>
+                </div>
+                <div class="sidebar-block">
+                    
+                </div>
+                <div class="clear">
+                </div>
+                <!-- Sidebar block -->
+                <div class="sidebar-block">
+                    <div id="pnlUspjeh">
+	
+                        <div class="blocktitle">
+                            <a class="aside" href="https://www.fit.ba/student/evaluacija/uspjeh.aspx">Detaljno » </a>
+                            <h1 style="margin-bottom: 0.4em">Ukupni uspjeh
+                            </h1>
+                        </div>
+                        <div class="charts">
+                            
+                                    <p class="chart-label">
+                                        <span id="lblGodina" style="font-size:Small;">1. godina / 9.09</span>
+                                    </p>
+                                    <div class="bar">
+                                        <img id="imgSlika" alt="bar" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/bar-on.png" style="height:15px;width:81.8%;">
+                                    </div>
+                                
+                                    <p class="chart-label">
+                                        <span id="lblGodina" style="font-size:Small;">2. godina / 7.75</span>
+                                    </p>
+                                    <div class="bar">
+                                        <img id="imgSlika" alt="bar" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/bar-on.png" style="height:15px;width:55%;">
+                                    </div>
+                                
+                                    <p class="chart-label">
+                                        <span id="lblGodina" style="font-size:Small;">Ukupan prosjek / 8.73</span>
+                                    </p>
+                                    <div class="bar">
+                                        <img id="imgSlika" alt="bar" src="../../../Desktop/DLWMS%20-%20Studentski%20online%20servis_files/bar-upload.png" style="height:15px;width:74.6%;">
+                                    </div>
+                                
+                        </div>
+                    
+</div>
+                </div>
+            </div>
+        </div>
+        <div id="footer">
+            <h2>FIT DLWMS - Dashboard</h2>
+            <hr>
+            <p>
+                <a href="https://www.fit.ba/student/default.aspx">Početna</a>, 
+                <a href="https://www.fit.ba/student/nastava/index.aspx">Nastava</a>,
+                <a href="https://www.fit.ba/student/EUSASStudentHome.aspx" target="_blank">Testovi</a>, 
+                <a href="https://www.fit.ba/student/nastava/dokumenti/pretraga.aspx">Dokumenti</a>, 
+                <a href="https://www.fit.ba/student/rokovi/index.aspx">Termini</a>, 
+                <a href="https://www.fit.ba/student/nastava/moji_radovi.aspx">Moji radovi</a>, 
+                <a href="https://www.fit.ba/student/nastava/prisustvo.aspx">Prisustva</a>, 
+                <a href="https://www.fit.ba/student/evaluacija/uspjeh.aspx">Uspjeh</a>, 
+                <a href="https://www.fit.ba/student/licni_podaci.aspx">Moji podaci</a>, 
+                <a href="https://www.fit.ba/student/potvrde/index.aspx">Potvrde</a>, 
+                
+                <a href="https://www.youtube.com/user/eduFITba" target="_blank">FIT video</a>, 
+                <a href="https://www.fit.ba/student/bug_report.aspx">Prijavi grešku</a>
+            </p>
+            <div class="fineprint">
+                Copyright © 2011-2012, Fakultet informacijskih tehnologija ukoliko nije drugačije
+            označeno. Sva prava pridržana.
+            </div>
+        </div>
+        <input type="hidden" name="ctl00$PosljednjaPrijava" id="PosljednjaPrijava" value="08.04.2026 12:55:07">
+    </form>
+
+
+</body></html>
