@@ -1,0 +1,714 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>
+	DLWMS - Studentski online servis
+</title><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Reset all CSS rule -->
+    <link rel="stylesheet" href="DLWMS%20-%20Dokumenti_files/reset.css">
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="DLWMS%20-%20Dokumenti_files/dlwms.base.css" media="screen, projection"><link rel="stylesheet" href="DLWMS%20-%20Dokumenti_files/dlwms.fonts.css" media="screen, projection"><link rel="stylesheet" href="DLWMS%20-%20Dokumenti_files/dlwms.layout.css" media="screen, projection"><link rel="stylesheet" href="DLWMS%20-%20Dokumenti_files/dlwms.forms.css" media="screen, projection"><link rel="stylesheet" href="DLWMS%20-%20Dokumenti_files/dlwms.screen.css" media="screen, projection"><link rel="stylesheet" href="DLWMS%20-%20Dokumenti_files/dlwms.colors.css" media="screen, projection"><link rel="stylesheet" href="DLWMS%20-%20Dokumenti_files/dlwms3.css" media="screen, projection">
+    </head><body><span id="tabId" style="display: none;">dok</span>
+    <link rel="Stylesheet" href="DLWMS%20-%20Dokumenti_files/rating.css" type="text/css">
+    <script type="text/javascript">
+        function validateHTMLForm() {
+            var hdnField = document.getElementById('hdnTextID');
+
+            var bezHtml = document.getElementById(hdnField.value);
+            bezHtml.value = bezHtml.value.replace(/(<([^>]+)>)/ig, "");
+        }
+    </script>
+
+    <script type="text/javascript">
+        function setActiveMenu() {
+            var control = document.getElementById('tabId');
+            if (control != null) {
+                var menuid = control.innerText;
+                var menu = document.getElementById(menuid);
+                menu.className = menuid + ' selected';
+            }
+        }
+        function validateHTML(id) {
+            var bezHtml = document.getElementById(id);
+            bezHtml.value = bezHtml.value.replace(/(<([^>]+)>)/ig, "");
+        }
+        window.onload = setActiveMenu;
+    </script>
+
+
+    <form method="post" action="./pretraga.aspx" id="form1">
+<div class="aspNetHidden">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+<input type="hidden" name="__LASTFOCUS" id="__LASTFOCUS" value="">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="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">
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['form1'];
+if (!theForm) {
+    theForm = document.form1;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="DLWMS%20-%20Dokumenti_files/WebResource.js" type="text/javascript"></script>
+
+
+<script src="DLWMS%20-%20Dokumenti_files/ScriptResource.js" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+if (typeof(Sys) === 'undefined') throw new Error('ASP.NET Ajax client-side framework failed to load.');
+//]]>
+</script>
+
+<script src="DLWMS%20-%20Dokumenti_files/ScriptResource_002.js" type="text/javascript"></script>
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="79ADFA24">
+	<input type="hidden" name="__SCROLLPOSITIONX" id="__SCROLLPOSITIONX" value="0">
+	<input type="hidden" name="__SCROLLPOSITIONY" id="__SCROLLPOSITIONY" value="0">
+	<input type="hidden" name="__PREVIOUSPAGE" id="__PREVIOUSPAGE" value="z9c-L0m4YY4viQwKjrtdeueqHgWbYDs4HgllfS85_taECEtKG1A2UxpZZYzzZwUX-cx_QZ4YPkM935priZ03VK0xV9GwjvwIgkePIiTl_hTps5oYxYDnoE4GXBCetsgC0">
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="muSedywxrT+VOyX8roFRaLCL/PgVT5TbibOiFpLaDGQtQE5dwBE6iAx+ek/0VtoioxVVrOdlf7lmdO2zZI5038TZyL5M6J8Mwy7UPY6kphBoPzBWRtQzTcBnG1KpgTznVLCN3kFt+8Y7uCZdVEjV3uCeXPiiSDt9LwBRvb68I5pEbnbo9ORAh3hLsB1ynhdPzwMCF1+m69aLyvJ+uCOFAT5skNLmj+hH6K8DWL6wfKHUbJTHLgpjiGd/jdtcJEE1qCkyF2iahfH2b8iKt9vKPWfGmgmoBxmzwVfDh8DBOaAIOdWxi7dBWQB16E6evMzlmdVZTTVW6hgpVOesF2supYoDKDDKr1c4+YTLziJW8HZ0WhyH8v2O5KRcCZh8OrNxpHv1u0bvxOPKtUzK9qJcWZt1gJ6p0zzSPEBOu71AA6PkZzBGtYs0AwFQ1JtU1BONUCT6ulPJGMw+UUR4sVJaJED/SAM/T1zhKK2APSF1gG8EJxX+pSsZcu5dW2oKn+Ff0xflbUgR1grCSnWq6GHWl/s+65EGMfqwhbmcZ/xhvQmsU8dmAM4DurHvCo8tw3ewWmXLnneApzFlqKQ23ax14XJqPb9nA7Q14W591J/UPX4lm2IyR+gshAJ0ZSOHEC1sQssrValo8FUfl1xez4bk9wZhCojhAxA42wOD8YLI/luk78Jms4gmYMEdnpbBd2WmExpmNifpO+Kd+X2c8sYeFUIy56oa1w4JiAgj3wAAVmlpNj8qvLR57QP8ZoPbEmwVDKOXC7p6GnAaVBfRdLFKKeKlh6K6FCNG12BNJeGsZwiSv2igyoSa77oGuErCnB7Nd52itmufHwN284QUGHOo5sstgPsf/ceYe0aTW1SG9A0akN4SCzSmXODLSDCiZvf+W+Ye6BlYRfPsN03yChMbWzTxIUpXDrRlogaQcXwuf5+B1I/lH9s70yhAHXf7+JhK6C5ZO00hMX3aCAoKIUwauDeUDSSLa6coTD1XIpCEXfvMFM/YpM+0wGNCpXzKvqjSUiCvvvmiUg2t4B2LZbH9EGeNjlmxRu71JK0XQG3wjMII4dPvdvCAJh5lOCqGpiuq+ZBmw0hTo3vAPhX0Zv3i1ZT7GuT9QDSWTmOJp8qa5/jlyROjsQmWZwnseTIhC357UDvS0HJ+tJzSHP0yL99O5prpR+iO+wLWGwRnrZeJ/FSCAVps9Qrx/089ogQ4+isEJENfZWu4uNLjWQGn9I6PFqw03q7+BC9+87H4hDlxpB7gyvCk/YPj/gODxHWsoMzj0Y58kHamwY7gIpQ5r2kW5qFf2eT935v9myXk0FYP7AOaCibmzoBxryWwDh++LhnzOLYlzWRvlFJUCeE3EqMT4dFmSflcR3Nz/UpoO0wp2ENoiGiPy0QzAhGoPLXADbRfzRpvGgsaAyj8wjr5otQYzWVzR7v39uatUZyOeY2c640n1tzyHiXzIsFoqDziZvDIHrGYjlrUDFL8CXAUewGVN8Gpc5zpEwtf6n/O+hqdtIlTy7zS+zBcbeutZYWRUE5G7EZp32932zTYaA0vyWh6MgclEEbawwaoBuRgvV84M/VaBNnCJ8p71ZbAThR4j8Ev2x3w3d38dQ+tn96PDQ06ih3IdyLu6OKprf8DfKKt5so=">
+</div>
+        <div id="header">
+            <div class="tools">
+                <a class="logo" href="https://www.fit.ba/student/default.aspx">
+                    <img src="DLWMS%20-%20Dokumenti_files/logo.png" alt="CMS-One" width="176" height="32"></a>
+                <div class="tools-account">
+                    <span>Dobrodošli,
+                    <a id="lbtnPrijavljen" href='javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions("ctl00$lbtnPrijavljen", "", false, "", "../../licni_podaci.aspx", false, true))'>Admir Voloder</a>
+                        <a href="https://www.fit.ba/student/logout.aspx" target="_self" class="button blue">Odjava</a></span>
+                </div>
+            </div>
+            <!--
+        TOP MENU
+                  -->
+            <ul class="nav mainmenu" id="menu">
+                <li id="home" class="home"><a href="https://www.fit.ba/student/default.aspx"> Početna</a></li>
+                <li id="board" class="board"><a href="https://www.fit.ba/student/nastava/index.aspx">Nastava</a>
+                    <a href="https://www.fit.ba/student/default.aspx?novosti=1" title="Prikaži nove obavijesti">
+                        </a></li>
+                <li id="test" class="test"><a href="https://www.fit.ba/student/EUSASStudentHome.aspx" target="_blank">Testovi</a></li>
+                <li id="dok" class="dok selected"><a href="https://www.fit.ba/student/nastava/dokumenti/pretraga.aspx">Dokumenti</a>
+                </li>
+                <li id="dates" class="dates"><a href="https://www.fit.ba/student/rokovi/index.aspx">Termini</a></li>
+                <li id="works" class="works"><a href="https://www.fit.ba/student/nastava/moji_radovi.aspx">Moji radovi</a></li>
+                <li id="stats" class="stats"><a href="https://www.fit.ba/student/nastava/prisustvo.aspx"> Prisustva</a></li>
+                <li id="grades" class="grades"><a href="https://www.fit.ba/student/evaluacija/uspjeh.aspx">Uspjeh</a></li>
+                <li id="accout" class="accout"><a href="https://www.fit.ba/student/licni_podaci.aspx">Moji podaci</a></li>
+                <li id="certificate" class="certificate"><a href="https://www.fit.ba/student/potvrde/index.aspx">Potvrde</a>
+                    </li>
+             
+                <li id="video" class="video"><a href="https://www.youtube.com/user/eduFITba" target="_blank">FIT video</a></li>
+                <li id="forum" class="forum"><a href="https://www.fit.ba/forum" target="_blank">FIT forum</a></li>
+            </ul>
+            <div class="clear">
+            </div>
+        </div>
+        <div class="wrapper">
+            <div id="content-wrapper">
+                <div class="form-head" style="height: 35px; width: 700px; margin-top: -0.5em; margin-bottom: -0.5em;">
+                    <div id="Div1" style="margin-bottom: -13px; width: 696px; height: 24px" class="input-box">
+                        <p class="path">
+                            <span id="Label1" style="color:#666666;">Nalazite se u:</span>
+                            <span id="siteMapa"><a href="#siteMapa_SkipLink" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">Skip Navigation Links</a><a id="siteMapa_SkipLink"></a></span>
+                        </p>
+                    </div>
+                </div>
+                <div id="content-header">
+                </div>
+                
+    <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$ContentPlaceHolder1$ScriptManager1', 'form1', ['tctl00$ContentPlaceHolder1$listDokumentUP','listDokumentUP'], ['ctl00$ContentPlaceHolder1$chbxOznaci','chbxOznaci'], [], 90, 'ctl00');
+//]]>
+</script>
+
+    <div class="form-head">
+        <div class="blocktitle">
+            <h1>
+                <span id="Label2">Arhiva dokumenata</span>
+            </h1>
+        </div>
+        <ul class="student-details">
+            <li>
+                <p class="four-col labels" style="width: 140px">
+                    <span id="Label3">Predmet</span>:</p>
+                <div class="eight-col last-col" style="width: 55px; height: 16px;">
+                    <select name="ctl00$ContentPlaceHolder1$listGodina" onchange="javascript:setTimeout('__doPostBack(\'ctl00$ContentPlaceHolder1$listGodina\',\'\')', 0)" id="listGodina" class="input-box" style="color:#333333;width:50px;">
+	<option value="1">1</option>
+	<option selected="selected" value="2">2</option>
+
+</select>
+                </div>
+                <div class="six-col last-col">
+                    <select name="ctl00$ContentPlaceHolder1$ddlPredmeti" onchange="javascript:setTimeout('__doPostBack(\'ctl00$ContentPlaceHolder1$ddlPredmeti\',\'\')', 0)" id="ddlPredmeti" class="input-box" style="color:#333333;">
+	<option selected="selected" value="146">Analiza i dizajn softvera</option>
+	<option value="145">Baze podataka I</option>
+	<option value="147">Baze podataka II</option>
+	<option value="24">Engleski jezik III</option>
+	<option value="247">Kompjuterska grafika</option>
+	<option value="226">Matematika III</option>
+	<option value="228">Paralelno programiranje</option>
+	<option value="148">Primijenjena statistika</option>
+	<option value="177">Programiranje III</option>
+	<option value="227">Računarske mreže I</option>
+	<option value="225">Strukture podataka i algoritmi</option>
+
+</select>
+                </div>
+                <div class="clear">
+                </div>
+            </li>
+            <li>
+                <p class="four-col labels" style="width: 140px">
+                    <span id="Label6">Ključne riječi</span>:</p>
+                <div class="seven-col last-col">
+                    <div class="input-box" style="width: 397px">
+                        <input name="ctl00$ContentPlaceHolder1$txtKljucneRijeci" type="text" id="txtKljucneRijeci" onchange="javascript:return validateHTML(this.id);" style="border-color:Silver;">
+                    </div>
+                </div>
+                <div class="clear">
+                </div>
+            </li>
+            <li class="five-col" style="height: 25px">
+                <p class="two-col labels" style="width: 140px">
+                    <span id="Label5">Vrsta</span>:
+                </p>
+                <div class="two-col last-col">
+                    <select name="ctl00$ContentPlaceHolder1$listVrsta" id="listVrsta" class="input-box" style="color:#333333;">
+	<option selected="selected" value=""></option>
+	<option value="1">Predavanja</option>
+	<option value="2">Vježbe</option>
+	<option value="3">Workshop</option>
+	<option value="4">Ostalo</option>
+
+</select>
+                </div>
+            </li>
+            <li class="four-col" style="padding-left: 28px; height: 25px">
+                <p class="two-col labels">
+                    <span id="Label7">Šk. godina</span>:
+                </p>
+                <div class="two-col last-col">
+                    <select name="ctl00$ContentPlaceHolder1$ddlSkolskeGodine" id="ddlSkolskeGodine" class="input-box" style="color:#333333;">
+	<option selected="selected" value=""></option>
+	<option value="2024/2025">2024/2025</option>
+	<option value="2025/2026">2025/2026</option>
+
+</select>
+                </div>
+            </li>
+            <li class="form-actions">
+                <div class="clear">
+                </div>
+                <hr>
+                <input type="submit" name="ctl00$ContentPlaceHolder1$btnTrazi" value="Traži" id="btnTrazi" class="form-submit">
+            </li>
+        </ul>
+        <div class="clear">
+        </div>
+    </div>
+    <br>
+    <div id="listDokumentUP" width="100%">
+	
+            <div class="blocktitle">
+                <h1>
+                    <span id="Label1" style="display:inline-block;width:670px;">Dokumenti</span>
+                </h1>
+            </div>
+            <ul class="messages">
+                
+            </ul>
+            <table cellspacing="0" id="gridDokumenti" style="border-style:None;width:700px;border-collapse:collapse;">
+		<tbody><tr class="pgr" align="center">
+			<td><span>1</span>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl01$ctl01','')">2</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl01$ctl02','')">3</a></td>
+		</tr><tr>
+			<td>&nbsp;</td>
+		</tr><tr>
+			<td>
+                            <contenttemplate>
+                                    <table>
+                                        <tbody><tr>
+                                            <td>
+                                                <img id="imgType" src="DLWMS%20-%20Dokumenti_files/file_pdf.png">
+                                            </td>
+                                            <td style="padding-left: 10px; vertical-align: top">
+                                                <input id="chbxOdaberi" type="checkbox" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl03$chbxOdaberi" onclick="javascript:setTimeout('__doPostBack(\'ctl00$ContentPlaceHolder1$gridDokumenti$ctl03$chbxOdaberi\',\'\')', 0)">
+                                                <a id="lbtnNaslov" class="linkButton" href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl03$lbtnNaslov','')" style="font-size:Medium;">ADS - V1 - UML - 2025/2026</a>
+                                                <br>
+                                                <span id="lblVrsta" class="meta">Vježbe 07.04.2026 / Autor-Emina Junuz (</span><span id="lblDokumentSize" class="meta">399</span>
+                                                <span id="Label8" class="meta"> KB)</span>
+                                                <br>
+                                                <span id="prosjecnaOcjena" class="meta">Ocjena:</span>
+                                                <a title="Komentari">
+                                                    <input type="image" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl03$imbtnKomentar" id="imbtnKomentar" src="DLWMS%20-%20Dokumenti_files/strelica.gif"></a>
+                                            </td>
+                                        </tr>
+                                    </tbody></table>
+                            
+                        </contenttemplate></td>
+		</tr><tr>
+			<td>
+                            <contenttemplate>
+                                    <table>
+                                        <tbody><tr>
+                                            <td>
+                                                <img id="imgType" src="DLWMS%20-%20Dokumenti_files/file_pdf.png">
+                                            </td>
+                                            <td style="padding-left: 10px; vertical-align: top">
+                                                <input id="chbxOdaberi" type="checkbox" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl04$chbxOdaberi" onclick="javascript:setTimeout('__doPostBack(\'ctl00$ContentPlaceHolder1$gridDokumenti$ctl04$chbxOdaberi\',\'\')', 0)">
+                                                <a id="lbtnNaslov" class="linkButton" href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl04$lbtnNaslov','')" style="font-size:Medium;">ADS - P5 - SSD - 2025/2026</a>
+                                                <br>
+                                                <span id="lblVrsta" class="meta">Predavanja 07.04.2026 / Autor-prof. dr Emina Junuz (</span><span id="lblDokumentSize" class="meta">1276</span>
+                                                <span id="Label8" class="meta"> KB)</span>
+                                                <br>
+                                                <span id="prosjecnaOcjena" class="meta">Ocjena:</span>
+                                                <a title="Komentari">
+                                                    <input type="image" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl04$imbtnKomentar" id="imbtnKomentar" src="DLWMS%20-%20Dokumenti_files/strelica.gif"></a>
+                                            </td>
+                                        </tr>
+                                    </tbody></table>
+                            
+                        </contenttemplate></td>
+		</tr><tr>
+			<td>
+                            <contenttemplate>
+                                    <table>
+                                        <tbody><tr>
+                                            <td>
+                                                <img id="imgType" src="DLWMS%20-%20Dokumenti_files/file_pdf.png">
+                                            </td>
+                                            <td style="padding-left: 10px; vertical-align: top">
+                                                <input id="chbxOdaberi" type="checkbox" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl05$chbxOdaberi" onclick="javascript:setTimeout('__doPostBack(\'ctl00$ContentPlaceHolder1$gridDokumenti$ctl05$chbxOdaberi\',\'\')', 0)">
+                                                <a id="lbtnNaslov" class="linkButton" href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl05$lbtnNaslov','')" style="font-size:Medium;">ADS - P4 - Domain model- 2025/2026</a>
+                                                <br>
+                                                <span id="lblVrsta" class="meta">Predavanja 07.04.2026 / Autor-Emina Junuz (</span><span id="lblDokumentSize" class="meta">838</span>
+                                                <span id="Label8" class="meta"> KB)</span>
+                                                <br>
+                                                <span id="prosjecnaOcjena" class="meta">Ocjena:</span>
+                                                <a title="Komentari">
+                                                    <input type="image" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl05$imbtnKomentar" id="imbtnKomentar" src="DLWMS%20-%20Dokumenti_files/strelica.gif"></a>
+                                            </td>
+                                        </tr>
+                                    </tbody></table>
+                            
+                        </contenttemplate></td>
+		</tr><tr>
+			<td>
+                            <contenttemplate>
+                                    <table>
+                                        <tbody><tr>
+                                            <td>
+                                                <img id="imgType" src="DLWMS%20-%20Dokumenti_files/file_pdf.png">
+                                            </td>
+                                            <td style="padding-left: 10px; vertical-align: top">
+                                                <input id="chbxOdaberi" type="checkbox" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl06$chbxOdaberi" onclick="javascript:setTimeout('__doPostBack(\'ctl00$ContentPlaceHolder1$gridDokumenti$ctl06$chbxOdaberi\',\'\')', 0)">
+                                                <a id="lbtnNaslov" class="linkButton" href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl06$lbtnNaslov','')" style="font-size:Medium;">ADS - P3 - Modeliranje zahtjeva - 2025/2026</a>
+                                                <br>
+                                                <span id="lblVrsta" class="meta">Predavanja 03.04.2026 / Autor-prof. dr Emina Junuz (</span><span id="lblDokumentSize" class="meta">1596</span>
+                                                <span id="Label8" class="meta"> KB)</span>
+                                                <br>
+                                                <span id="prosjecnaOcjena" class="meta">Ocjena:</span>
+                                                <a title="Komentari">
+                                                    <input type="image" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl06$imbtnKomentar" id="imbtnKomentar" src="DLWMS%20-%20Dokumenti_files/strelica.gif"></a>
+                                            </td>
+                                        </tr>
+                                    </tbody></table>
+                            
+                        </contenttemplate></td>
+		</tr><tr>
+			<td>
+                            <contenttemplate>
+                                    <table>
+                                        <tbody><tr>
+                                            <td>
+                                                <img id="imgType" src="DLWMS%20-%20Dokumenti_files/file_pdf.png">
+                                            </td>
+                                            <td style="padding-left: 10px; vertical-align: top">
+                                                <input id="chbxOdaberi" type="checkbox" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl07$chbxOdaberi" onclick="javascript:setTimeout('__doPostBack(\'ctl00$ContentPlaceHolder1$gridDokumenti$ctl07$chbxOdaberi\',\'\')', 0)">
+                                                <a id="lbtnNaslov" class="linkButton" href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl07$lbtnNaslov','')" style="font-size:Medium;">ADS - P2 - Uvod u UML - 2025/2026</a>
+                                                <br>
+                                                <span id="lblVrsta" class="meta">Predavanja 03.04.2026 / Autor-prof. dr Emina Junuz (</span><span id="lblDokumentSize" class="meta">896</span>
+                                                <span id="Label8" class="meta"> KB)</span>
+                                                <br>
+                                                <span id="prosjecnaOcjena" class="meta">Ocjena:</span>
+                                                <a title="Komentari">
+                                                    <input type="image" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl07$imbtnKomentar" id="imbtnKomentar" src="DLWMS%20-%20Dokumenti_files/strelica.gif"></a>
+                                            </td>
+                                        </tr>
+                                    </tbody></table>
+                            
+                        </contenttemplate></td>
+		</tr><tr>
+			<td>
+                            <contenttemplate>
+                                    <table>
+                                        <tbody><tr>
+                                            <td>
+                                                <img id="imgType" src="DLWMS%20-%20Dokumenti_files/file_pdf.png">
+                                            </td>
+                                            <td style="padding-left: 10px; vertical-align: top">
+                                                <input id="chbxOdaberi" type="checkbox" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl08$chbxOdaberi" onclick="javascript:setTimeout('__doPostBack(\'ctl00$ContentPlaceHolder1$gridDokumenti$ctl08$chbxOdaberi\',\'\')', 0)">
+                                                <a id="lbtnNaslov" class="linkButton" href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl08$lbtnNaslov','')" style="font-size:Medium;">ADS - P1 - syllabus - 2025/2026</a>
+                                                <br>
+                                                <span id="lblVrsta" class="meta">Predavanja 03.04.2026 / Autor-Emina Junuz (</span><span id="lblDokumentSize" class="meta">232</span>
+                                                <span id="Label8" class="meta"> KB)</span>
+                                                <br>
+                                                <span id="prosjecnaOcjena" class="meta">Ocjena:</span>
+                                                <a title="Komentari">
+                                                    <input type="image" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl08$imbtnKomentar" id="imbtnKomentar" src="DLWMS%20-%20Dokumenti_files/strelica.gif"></a>
+                                            </td>
+                                        </tr>
+                                    </tbody></table>
+                            
+                        </contenttemplate></td>
+		</tr><tr>
+			<td>
+                            <contenttemplate>
+                                    <table>
+                                        <tbody><tr>
+                                            <td>
+                                                <img id="imgType" src="DLWMS%20-%20Dokumenti_files/file_pdf.png">
+                                            </td>
+                                            <td style="padding-left: 10px; vertical-align: top">
+                                                <input id="chbxOdaberi" type="checkbox" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl09$chbxOdaberi" onclick="javascript:setTimeout('__doPostBack(\'ctl00$ContentPlaceHolder1$gridDokumenti$ctl09$chbxOdaberi\',\'\')', 0)">
+                                                <a id="lbtnNaslov" class="linkButton" href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl09$lbtnNaslov','')" style="color:DimGray;font-size:Medium;">ADS - P13 - DIJAGRAM RASPOREDA- 2024/2025</a>
+                                                <br>
+                                                <span id="lblVrsta" class="meta">Predavanja 12.06.2025 / Autor-Emina Junuz (</span><span id="lblDokumentSize" class="meta">579</span>
+                                                <span id="Label8" class="meta"> KB)</span>
+                                                <br>
+                                                <span id="prosjecnaOcjena" class="meta">Ocjena:</span>
+                                                <a title="Komentari">
+                                                    <input type="image" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl09$imbtnKomentar" id="imbtnKomentar" src="DLWMS%20-%20Dokumenti_files/strelica.gif"></a>
+                                            </td>
+                                        </tr>
+                                    </tbody></table>
+                            
+                        </contenttemplate></td>
+		</tr><tr>
+			<td>
+                            <contenttemplate>
+                                    <table>
+                                        <tbody><tr>
+                                            <td>
+                                                <img id="imgType" src="DLWMS%20-%20Dokumenti_files/box_rar.png">
+                                            </td>
+                                            <td style="padding-left: 10px; vertical-align: top">
+                                                <input id="chbxOdaberi" type="checkbox" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl10$chbxOdaberi" onclick="javascript:setTimeout('__doPostBack(\'ctl00$ContentPlaceHolder1$gridDokumenti$ctl10$chbxOdaberi\',\'\')', 0)">
+                                                <a id="lbtnNaslov" class="linkButton" href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl10$lbtnNaslov','')" style="color:DimGray;font-size:Medium;">ADS - P12 - Dijagram komponenti- 2024/2025</a>
+                                                <br>
+                                                <span id="lblVrsta" class="meta">Predavanja 12.06.2025 / Autor-prof. dr Emina Junuz (</span><span id="lblDokumentSize" class="meta">788</span>
+                                                <span id="Label8" class="meta"> KB)</span>
+                                                <br>
+                                                <span id="prosjecnaOcjena" class="meta">Ocjena:</span>
+                                                <a title="Komentari">
+                                                    <input type="image" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl10$imbtnKomentar" id="imbtnKomentar" src="DLWMS%20-%20Dokumenti_files/strelica.gif"></a>
+                                            </td>
+                                        </tr>
+                                    </tbody></table>
+                            
+                        </contenttemplate></td>
+		</tr><tr>
+			<td>
+                            <contenttemplate>
+                                    <table>
+                                        <tbody><tr>
+                                            <td>
+                                                <img id="imgType" src="DLWMS%20-%20Dokumenti_files/box_rar.png">
+                                            </td>
+                                            <td style="padding-left: 10px; vertical-align: top">
+                                                <input id="chbxOdaberi" type="checkbox" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl11$chbxOdaberi" onclick="javascript:setTimeout('__doPostBack(\'ctl00$ContentPlaceHolder1$gridDokumenti$ctl11$chbxOdaberi\',\'\')', 0)">
+                                                <a id="lbtnNaslov" class="linkButton" href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl11$lbtnNaslov','')" style="font-size:Medium;">ADS - P11 - Dijagram aktivnosti</a>
+                                                <br>
+                                                <span id="lblVrsta" class="meta">Predavanja 12.06.2025 / Autor-Emina Junuz (</span><span id="lblDokumentSize" class="meta">643</span>
+                                                <span id="Label8" class="meta"> KB)</span>
+                                                <br>
+                                                <span id="prosjecnaOcjena" class="meta">Ocjena:</span>
+                                                <a title="Komentari">
+                                                    <input type="image" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl11$imbtnKomentar" id="imbtnKomentar" src="DLWMS%20-%20Dokumenti_files/strelica.gif"></a>
+                                            </td>
+                                        </tr>
+                                    </tbody></table>
+                            
+                        </contenttemplate></td>
+		</tr><tr>
+			<td>
+                            <contenttemplate>
+                                    <table>
+                                        <tbody><tr>
+                                            <td>
+                                                <img id="imgType" src="DLWMS%20-%20Dokumenti_files/box_rar.png">
+                                            </td>
+                                            <td style="padding-left: 10px; vertical-align: top">
+                                                <input id="chbxOdaberi" type="checkbox" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl12$chbxOdaberi" onclick="javascript:setTimeout('__doPostBack(\'ctl00$ContentPlaceHolder1$gridDokumenti$ctl12$chbxOdaberi\',\'\')', 0)">
+                                                <a id="lbtnNaslov" class="linkButton" href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl12$lbtnNaslov','')" style="font-size:Medium;">ADS - P10 - UML Dijagram stanja - 2024/2025</a>
+                                                <br>
+                                                <span id="lblVrsta" class="meta">Predavanja 26.05.2025 / Autor-prof. dr Emina Junuz (</span><span id="lblDokumentSize" class="meta">860</span>
+                                                <span id="Label8" class="meta"> KB)</span>
+                                                <br>
+                                                <span id="prosjecnaOcjena" class="meta">Ocjena:</span>
+                                                <a title="Komentari">
+                                                    <input type="image" name="ctl00$ContentPlaceHolder1$gridDokumenti$ctl12$imbtnKomentar" id="imbtnKomentar" src="DLWMS%20-%20Dokumenti_files/strelica.gif"></a>
+                                            </td>
+                                        </tr>
+                                    </tbody></table>
+                            
+                        </contenttemplate></td>
+		</tr><tr class="pgr" align="center">
+			<td><span>1</span>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl14$ctl01','')">2</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gridDokumenti$ctl14$ctl02','')">3</a></td>
+		</tr>
+	</tbody></table>
+            <input type="hidden" name="ctl00$ContentPlaceHolder1$hdnTextID" id="hdnTextID">
+            <div style="padding-left: 58px">
+                <span style="color:#125E7C;"><input id="chbxOznaci" type="checkbox" name="ctl00$ContentPlaceHolder1$chbxOznaci" onclick="javascript:setTimeout('__doPostBack(\'ctl00$ContentPlaceHolder1$chbxOznaci\',\'\')', 0)"><label for="chbxOznaci">Označi sve</label></span>
+            </div>
+            <div id="download" style="padding-left: 58px">
+                <hr>
+                <span id="Label9" style="color:#777777;">Veličina arhive: </span>
+                <span id="lblTotalSize" style="color:#777777;font-weight:bold;">0 MB</span>
+                <a id="lbtnDownloadSelected" href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$lbtnDownloadSelected','')" style="float: right">Download Selected</a>
+            </div>
+        
+</div>
+    
+    
+    <br>
+
+            </div>
+            <div id="sidebar">
+                <div class="form-head" style="height: 35px; margin-top: -0.5em; margin-bottom: -0.5em;">
+                    <ul>
+                        <li>
+                            <div class="input-box" style="width: 170px; height: 24px;">
+                                <input name="ctl00$txtSearchObavijesti" type="text" value="Pretraga obavijesti..." id="txtSearchObavijesti" onclick="if(this.value=='Pretraga obavijesti...')this.value='';" onblur="if(this.value=='') this.value='Pretraga obavijesti...';" onchange="javascript:return validateHTML(this.id);" style="font-size:Small;font-style:italic;width:150px;">
+                            </div>
+                            <input type="image" name="ctl00$Image1" id="Image1" src="DLWMS%20-%20Dokumenti_files/icon-search.gif" style="margin-left: 173px; width: 23px; height: 23px;">
+                            <br>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Sidebar block -->
+                <div class="sidebar-block">
+                    <div id="pnlUpozorenja" style="margin-top: 1em">
+	
+                        <div class="blocktitle" style="padding: 0 0 .5em 0;">
+                            <h1 style="margin-bottom: 0.1em">Upozorenja
+                            </h1>
+                        </div>
+                        
+                        
+                                <ul class="quick-alerts" style="margin-bottom: -0.5em">
+                                    <li class="warn"><a><span class="icon ico-clock"></span><span class="title">
+                                        <span id="lblObavijest">Ispit je za 5 dana!</span>
+                                    </span><span class="meta">
+                                        <span id="lblPredmet" style="display:inline-block;width:150px;">Analiza i dizajn softvera</span>
+                                    </span></a></li>
+                                </ul>
+                            
+                        
+                        <div id="pnlLozinkaNE">
+		
+                            <ul class="quick-alerts">
+                                <li class="note"><a><span class="icon ico-alert"></span>
+                                    <span class="title">
+                                        <span id="lblLozinkaNE" style="display:inline-block;width:150px;margin-top: 5px">Lozinka ne vrijedi za:<br>- Forum</span>
+                                    </span></a></li>
+                            </ul>
+                        
+	</div>
+                    
+</div>
+                </div>
+                <!-- Sidebar block -->
+                <div class="sidebar-block">
+                    <div id="pnlMaterijali">
+	
+                        <div class="blocktitle">
+                            <a class="aside" href="https://www.fit.ba/student/nastava/dokumenti/pretraga.aspx">Arhiva »</a>
+                            <h1 style="margin-bottom: 0.4em">Zadnji dokumenti
+                            </h1>
+                        </div>
+                        <div class="form-head">
+                            <table cellspacing="0" id="gridMaterijali" style="border-collapse:collapse;margin-bottom: 0;">
+		<tbody><tr>
+			<td style="width:200px;">
+                                            <table>
+                                                <tbody><tr>
+                                                    <td>
+                                                        <img id="imgType" src="DLWMS%20-%20Dokumenti_files/box_rar.png" style="height:38px;width:38px;">
+                                                    </td>
+                                                    <td style="padding-left: 10px; vertical-align: top">
+                                                        <a id="lbtnNaslov" class="linkButton" title="BP II - V4 - Upiti (drugi dio) - 2025/2026" href="javascript:__doPostBack('ctl00$gridMaterijali$ctl03$lbtnNaslov','')" style="font-size:Small;">BP II - V4 - Upiti...</a>
+                                                        <br>
+                                                        <span id="lblPredmetNaziv" style="color:#777777;font-size:Smaller;font-style:italic;">BP II</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody></table>
+                                        </td>
+		</tr><tr>
+			<td style="width:200px;">
+                                            <table>
+                                                <tbody><tr>
+                                                    <td>
+                                                        <img id="imgType" src="DLWMS%20-%20Dokumenti_files/file_pdf.png" style="height:38px;width:38px;">
+                                                    </td>
+                                                    <td style="padding-left: 10px; vertical-align: top">
+                                                        <a id="lbtnNaslov" class="linkButton" title="KGR - P5 - PinholKmaera - 2025/2026" href="javascript:__doPostBack('ctl00$gridMaterijali$ctl04$lbtnNaslov','')" style="font-size:Small;">KGR - P5 - PinholK...</a>
+                                                        <br>
+                                                        <span id="lblPredmetNaziv" style="color:#777777;font-size:Smaller;font-style:italic;">KGR</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody></table>
+                                        </td>
+		</tr><tr>
+			<td style="width:200px;">
+                                            <table>
+                                                <tbody><tr>
+                                                    <td>
+                                                        <img id="imgType" src="DLWMS%20-%20Dokumenti_files/file_pdf.png" style="height:38px;width:38px;">
+                                                    </td>
+                                                    <td style="padding-left: 10px; vertical-align: top">
+                                                        <a id="lbtnNaslov" class="linkButton" title="ADS - V1 - UML - 2025/2026" href="javascript:__doPostBack('ctl00$gridMaterijali$ctl05$lbtnNaslov','')" style="font-size:Small;">ADS - V1 - UML - 2...</a>
+                                                        <br>
+                                                        <span id="lblPredmetNaziv" style="color:#777777;font-size:Smaller;font-style:italic;">ADS</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody></table>
+                                        </td>
+		</tr><tr>
+			<td style="width:200px;">
+                                            <table>
+                                                <tbody><tr>
+                                                    <td>
+                                                        <img id="imgType" src="DLWMS%20-%20Dokumenti_files/file_pdf.png" style="height:38px;width:38px;">
+                                                    </td>
+                                                    <td style="padding-left: 10px; vertical-align: top">
+                                                        <a id="lbtnNaslov" class="linkButton" title="ADS - P5 - SSD - 2025/2026" href="javascript:__doPostBack('ctl00$gridMaterijali$ctl06$lbtnNaslov','')" style="font-size:Small;">ADS - P5 - SSD - 2...</a>
+                                                        <br>
+                                                        <span id="lblPredmetNaziv" style="color:#777777;font-size:Smaller;font-style:italic;">ADS</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody></table>
+                                        </td>
+		</tr><tr>
+			<td style="width:200px;">
+                                            <table>
+                                                <tbody><tr>
+                                                    <td>
+                                                        <img id="imgType" src="DLWMS%20-%20Dokumenti_files/file_pdf.png" style="height:38px;width:38px;">
+                                                    </td>
+                                                    <td style="padding-left: 10px; vertical-align: top">
+                                                        <a id="lbtnNaslov" class="linkButton" title="ADS - P4 - Domain model- 2025/2026" href="javascript:__doPostBack('ctl00$gridMaterijali$ctl07$lbtnNaslov','')" style="font-size:Small;">ADS - P4 - Domain ...</a>
+                                                        <br>
+                                                        <span id="lblPredmetNaziv" style="color:#777777;font-size:Smaller;font-style:italic;">ADS</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody></table>
+                                        </td>
+		</tr><tr class="pgr" align="left">
+			<td><span>1</span></td>
+		</tr>
+	</tbody></table>
+                            <a id="lbtnDownloadAll" href="javascript:__doPostBack('ctl00$lbtnDownloadAll','')" style="float: right;">Download All</a>
+                            <div class="clear">
+                            </div>
+                        </div>
+                    
+</div>
+                    <div class="clear">
+                    </div>
+                </div>
+                <div class="sidebar-block">
+                    
+                </div>
+                <div class="clear">
+                </div>
+                <!-- Sidebar block -->
+                <div class="sidebar-block">
+                    <div id="pnlUspjeh">
+	
+                        <div class="blocktitle">
+                            <a class="aside" href="https://www.fit.ba/student/evaluacija/uspjeh.aspx">Detaljno » </a>
+                            <h1 style="margin-bottom: 0.4em">Ukupni uspjeh
+                            </h1>
+                        </div>
+                        <div class="charts">
+                            
+                                    <p class="chart-label">
+                                        <span id="lblGodina" style="font-size:Small;">1. godina / 9.09</span>
+                                    </p>
+                                    <div class="bar">
+                                        <img id="imgSlika" alt="bar" src="DLWMS%20-%20Dokumenti_files/bar-on.png" style="height:15px;width:81.8%;">
+                                    </div>
+                                
+                                    <p class="chart-label">
+                                        <span id="lblGodina" style="font-size:Small;">2. godina / 7.75</span>
+                                    </p>
+                                    <div class="bar">
+                                        <img id="imgSlika" alt="bar" src="DLWMS%20-%20Dokumenti_files/bar-on.png" style="height:15px;width:55%;">
+                                    </div>
+                                
+                                    <p class="chart-label">
+                                        <span id="lblGodina" style="font-size:Small;">Ukupan prosjek / 8.73</span>
+                                    </p>
+                                    <div class="bar">
+                                        <img id="imgSlika" alt="bar" src="DLWMS%20-%20Dokumenti_files/bar-upload.png" style="height:15px;width:74.6%;">
+                                    </div>
+                                
+                        </div>
+                    
+</div>
+                </div>
+            </div>
+        </div>
+        <div id="footer">
+            <h2>FIT DLWMS - Dashboard</h2>
+            <hr>
+            <p>
+                <a href="https://www.fit.ba/student/default.aspx">Početna</a>, 
+                <a href="https://www.fit.ba/student/nastava/index.aspx">Nastava</a>,
+                <a href="https://www.fit.ba/student/EUSASStudentHome.aspx" target="_blank">Testovi</a>, 
+                <a href="https://www.fit.ba/student/nastava/dokumenti/pretraga.aspx">Dokumenti</a>, 
+                <a href="https://www.fit.ba/student/rokovi/index.aspx">Termini</a>, 
+                <a href="https://www.fit.ba/student/nastava/moji_radovi.aspx">Moji radovi</a>, 
+                <a href="https://www.fit.ba/student/nastava/prisustvo.aspx">Prisustva</a>, 
+                <a href="https://www.fit.ba/student/evaluacija/uspjeh.aspx">Uspjeh</a>, 
+                <a href="https://www.fit.ba/student/licni_podaci.aspx">Moji podaci</a>, 
+                <a href="https://www.fit.ba/student/potvrde/index.aspx">Potvrde</a>, 
+                
+                <a href="https://www.youtube.com/user/eduFITba" target="_blank">FIT video</a>, 
+                <a href="https://www.fit.ba/student/bug_report.aspx">Prijavi grešku</a>
+            </p>
+            <div class="fineprint">
+                Copyright © 2011-2012, Fakultet informacijskih tehnologija ukoliko nije drugačije
+            označeno. Sva prava pridržana.
+            </div>
+        </div>
+        <input type="hidden" name="ctl00$PosljednjaPrijava" id="PosljednjaPrijava" value="09.04.2026 19:16:05">
+    
+
+<script type="text/javascript">
+//<![CDATA[
+
+var callBackFrameUrl='/student/WebResource.axd?d=beToSAE3vdsL1QUQUxjWdaNuJiJk6Ptt2UWJFGHTydifBG8odjZ3nWvhtVqPCEKL7gmoT0dsQMv_O1bopWrSuQ2&t=638942282805310136';
+WebForm_InitCallback();
+theForm.oldSubmit = theForm.submit;
+theForm.submit = WebForm_SaveScrollPositionSubmit;
+
+theForm.oldOnSubmit = theForm.onsubmit;
+theForm.onsubmit = WebForm_SaveScrollPositionOnSubmit;
+//]]>
+</script>
+</form>
+
+
+</body></html>

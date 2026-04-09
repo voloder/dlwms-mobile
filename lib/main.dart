@@ -32,8 +32,7 @@ class DlwmsMobile extends StatelessWidget {
     return MaterialApp.router(
       title: "DLWMS Mobile",
       theme: ThemeData(
-        brightness: Brightness.dark,
-        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark)
       ),
       routerConfig: createRouter(context),
     );
