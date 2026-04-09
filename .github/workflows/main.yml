@@ -1,0 +1,45 @@
+name: Flutter Tagged Alpha Build
+
+on:
+  push:
+    tags:
+      - "v*-alpha.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Extract tag version
+        id: tag
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Rename APK
+        run: |
+          APP_NAME=$(basename $GITHUB_REPOSITORY)
+          APK_NAME="${APP_NAME}-${TAG}.apk"
+
+          mv build/app/outputs/flutter-apk/app-release.apk $APK_NAME
+          echo "APK_NAME=$APK_NAME" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APK_NAME }}
+          path: ${{ env.APK_NAME }}
