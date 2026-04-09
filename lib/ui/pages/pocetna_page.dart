@@ -28,12 +28,12 @@ class _PocetnaPageState extends State<PocetnaPage> with AutomaticKeepAliveClient
   Widget build(BuildContext context) {
     final notificationProvider = context.watch<NotificationProvider>();
 
-    return switch(notificationProvider.status) {
-      NotificationProviderStatus.loading => const Center(child: CircularProgressIndicator()),
-      NotificationProviderStatus.error => const Center(child: Text("Failed to load notifications")),
-      NotificationProviderStatus.loaded when notificationProvider.notifications!.isEmpty =>
+    return switch(notificationProvider.state) {
+      NotificationProviderState.loading => const Center(child: CircularProgressIndicator()),
+      NotificationProviderState.error => const Center(child: Text("Failed to load notifications")),
+      NotificationProviderState.loaded when notificationProvider.notifications!.isEmpty =>
       const Center(child: Text("No notifications available")),
-      NotificationProviderStatus.loaded =>
+      NotificationProviderState.loaded =>
           RefreshIndicator(
             displacement: 50,
             onRefresh: () => notificationProvider.fetchNotifications(),

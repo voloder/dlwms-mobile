@@ -20,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
-    final isLoading = authProvider.status == AuthProviderStatus.authenticating;
+    final isLoading = authProvider.state == AuthProviderState.authenticating;
 
     return Scaffold(
       body: SafeArea(
@@ -57,7 +57,7 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 32),
 
                   // Error Message
-                  if (authProvider.status == AuthProviderStatus.error) ...[
+                  if (authProvider.state == AuthProviderState.error) ...[
                     ErrorBanner(
                       message: "Neispravan broj indeksa ili šifra. Pokušajte ponovo.",
                     ),

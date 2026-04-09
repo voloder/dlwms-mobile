@@ -13,12 +13,12 @@ GoRouter createRouter(BuildContext context) => GoRouter(
       final isGoingToLogin = state.matchedLocation == '/login';
 
       // If still initializing, show loading page
-      if (authProvider.status == AuthProviderStatus.initial) {
+      if (authProvider.state == AuthProviderState.initial) {
         return '/';
       }
 
       // If authenticated, allow access to home, redirect from login/root
-      if (authProvider.status == AuthProviderStatus.authenticated) {
+      if (authProvider.state == AuthProviderState.authenticated) {
         if (isGoingToLogin || state.matchedLocation == '/') {
           return '/home';
         }
@@ -26,9 +26,9 @@ GoRouter createRouter(BuildContext context) => GoRouter(
       }
 
       // If unauthenticated or authenticating, redirect to login
-      if (authProvider.status == AuthProviderStatus.unauthenticated ||
-          authProvider.status == AuthProviderStatus.authenticating ||
-          authProvider.status == AuthProviderStatus.error) {
+      if (authProvider.state == AuthProviderState.unauthenticated ||
+          authProvider.state == AuthProviderState.authenticating ||
+          authProvider.state == AuthProviderState.error) {
         if (isGoingToLogin) {
           return null;
         }

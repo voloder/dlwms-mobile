@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import '../services/notification_service.dart';
 
-enum NotificationProviderStatus { loading, loaded, error }
+enum NotificationProviderState { loading, loaded, error }
 
 class NotificationProvider extends ChangeNotifier {
   AuthProvider? _authProvider;
@@ -18,19 +18,19 @@ class NotificationProvider extends ChangeNotifier {
 
   List<DlwmsNotification>? _notifications;
 
-  NotificationProviderStatus _status = NotificationProviderStatus.loading;
+  NotificationProviderState _state = NotificationProviderState.loading;
 
   List<DlwmsNotification>? get notifications => _notifications;
-  NotificationProviderStatus get status => _status;
+  NotificationProviderState get state => _state;
 
-  set status(NotificationProviderStatus newStatus) {
-    _status = newStatus;
+  set state(NotificationProviderState state) {
+    _state = state;
     notifyListeners();
   }
 
 
   Future<void> fetchNotifications() async {
-    status = NotificationProviderStatus.loading;
+    state = NotificationProviderState.loading;
     assert (_authProvider != null);
 
     final response = await _authProvider!.fetchWithAuth(notificationsUrl);
@@ -40,6 +40,6 @@ class NotificationProvider extends ChangeNotifier {
 
     _notifications = NotificationService.parseNotificationsFromHtml(response.body);
 
-    status = NotificationProviderStatus.loaded;
+    state = NotificationProviderState.loaded;
   }
 }

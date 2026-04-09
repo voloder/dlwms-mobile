@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:http/http.dart' as http;
 
-enum AuthProviderStatus {
+enum AuthProviderState {
   authenticated,
   unauthenticated,
   authenticating,
@@ -22,7 +22,7 @@ class AuthProvider extends ChangeNotifier {
     if(username != null && password != null) {
       login(username!, password!, isAuto: true);
     } else {
-      status = AuthProviderStatus.unauthenticated;
+      state = AuthProviderState.unauthenticated;
     }
   }
 
@@ -30,13 +30,13 @@ class AuthProvider extends ChangeNotifier {
 
   final authUrl = Uri.parse("https://www.fit.ba/student/login.aspx");
 
-  AuthProviderStatus _status = AuthProviderStatus.initial;
-  AuthProviderStatus get status => _status;
+  AuthProviderState _state = AuthProviderState.initial;
+  AuthProviderState get state => _state;
 
   String? _cookie;
 
-  set status(AuthProviderStatus state) {
-    _status = state;
+  set state(AuthProviderState state) {
+    _state = state;
     notifyListeners();
   }
 
@@ -81,7 +81,7 @@ class AuthProvider extends ChangeNotifier {
       };
 
   Future<void> login(String username, String password, {bool isAuto = false}) async {
-    status = isAuto ? AuthProviderStatus.initial : AuthProviderStatus.authenticating;
+    state = isAuto ? AuthProviderState.initial : AuthProviderState.authenticating;
 
     final requestData = FormTemplates.loginForm(username, password);
     final response =
@@ -95,9 +95,9 @@ class AuthProvider extends ChangeNotifier {
     if (response.statusCode == 302 && _cookie != null) {
       this.username = username;
       this.password = password;
-      status = AuthProviderStatus.authenticated;
+      state = AuthProviderState.authenticated;
     } else {
-      status = AuthProviderStatus.error;
+      state = AuthProviderState.error;
     }
   }
 
@@ -113,6 +113,6 @@ class AuthProvider extends ChangeNotifier {
 
   void logout() {
     _cookie = null;
-    status = AuthProviderStatus.unauthenticated;
+    state = AuthProviderState.unauthenticated;
   }
 }
