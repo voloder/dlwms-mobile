@@ -1,9 +1,12 @@
-name: Flutter Tagged Alpha Build
+name: Flutter Build and Release
 
 on:
   push:
     tags:
       - "v*"
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -37,12 +40,6 @@ jobs:
 
           mv build/app/outputs/flutter-apk/app-release.apk $APK_NAME
           echo "APK_NAME=$APK_NAME" >> $GITHUB_ENV
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.APK_NAME }}
-          path: ${{ env.APK_NAME }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
