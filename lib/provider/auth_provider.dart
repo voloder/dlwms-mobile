@@ -111,6 +111,16 @@ class AuthProvider extends ChangeNotifier {
     return response;
   }
 
+  Future<http.Response> postWithAuth(Uri url, {Object? body}) async {
+    if (_cookie == null) {
+      throw Exception("No authentication cookie found");
+    }
+
+    final response = await http.post(url, headers: headers, body: body);
+
+    return response;
+  }
+
   void logout() {
     _cookie = null;
     state = AuthProviderState.unauthenticated;
