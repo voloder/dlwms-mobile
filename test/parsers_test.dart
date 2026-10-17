@@ -89,7 +89,7 @@ void main() {
 
       final n = NotificationService.parseNotifications(page).single;
       expect(n.url,
-          'https://www.fit.ba/student/obavijesti/opsirnije.aspx?sqs=AB%2bC');
+          'https://www.fit.ba/student/obavijesti/opsirnije.aspx?sqs=AB%2BC');
       expect(n.subject, 'Opće');
       expect(n.dateTime, DateTime(2026, 10, 16, 22, 14));
     });
