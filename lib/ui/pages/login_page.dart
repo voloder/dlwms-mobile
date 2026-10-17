@@ -14,8 +14,21 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  TextEditingController usernameController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  late final TextEditingController usernameController;
+  final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    usernameController = TextEditingController(
+      text: context.read<AuthProvider>().username ?? '',
+    );
+  }
+
+  void _submit(AuthProvider authProvider) {
+    FocusScope.of(context).unfocus();
+    authProvider.login(usernameController.text, passwordController.text);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,53 +41,53 @@ class _LoginPageState extends State<LoginPage> {
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("DLWMS Mobile", style: Theme.of(context).textTheme.headlineMedium),
+              child: AutofillGroup(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("DLWMS Mobile",
+                        style: Theme.of(context).textTheme.headlineMedium),
 
-                  const SizedBox(height: 48),
+                    const SizedBox(height: 48),
 
-                  // Username Field
-                  CustomTextField(
-                    controller: usernameController,
-                    labelText: "Broj Indeksa",
-                    hintText: "Unesite broj indeksa",
-                    prefixIcon: Icons.person,
-                    enabled: !isLoading,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Password Field
-                  CustomTextField(
-                    controller: passwordController,
-                    labelText: "Šifra",
-                    hintText: "Unesite šifru",
-                    prefixIcon: Icons.lock,
-                    isPassword: true,
-                    enabled: !isLoading,
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Error Message
-                  if (authProvider.state == AuthProviderState.error) ...[
-                    ErrorBanner(
-                      message: "Neispravan broj indeksa ili šifra. Pokušajte ponovo.",
+                    // Username Field
+                    CustomTextField(
+                      controller: usernameController,
+                      labelText: "Broj Indeksa",
+                      hintText: "Unesite broj indeksa",
+                      prefixIcon: Icons.person,
+                      enabled: !isLoading,
                     ),
                     const SizedBox(height: 20),
-                  ],
 
-                  // Login Button
-                  LoginButton(
-                    isLoading: isLoading,
-                    onPressed: () {
-                      authProvider.login(
-                        usernameController.text,
-                        passwordController.text,
-                      );
-                    },
-                  ),
-                ],
+                    // Password Field
+                    CustomTextField(
+                      controller: passwordController,
+                      labelText: "Šifra",
+                      hintText: "Unesite šifru",
+                      prefixIcon: Icons.lock,
+                      isPassword: true,
+                      enabled: !isLoading,
+                      onSubmitted: (_) => _submit(authProvider),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Error Message
+                    if (authProvider.state == AuthProviderState.error) ...[
+                      ErrorBanner(
+                        message: authProvider.errorMessage ??
+                            "Neispravan broj indeksa ili šifra. Pokušajte ponovo.",
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // Login Button
+                    LoginButton(
+                      isLoading: isLoading,
+                      onPressed: () => _submit(authProvider),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

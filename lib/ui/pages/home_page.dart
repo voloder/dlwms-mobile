@@ -1,9 +1,12 @@
+import 'package:dlwms_mobile/provider/auth_provider.dart';
+import 'package:dlwms_mobile/services/background_service.dart';
 import 'package:dlwms_mobile/ui/pages/dokumenti_page.dart';
 import 'package:dlwms_mobile/ui/pages/nastava_page.dart';
 import 'package:dlwms_mobile/ui/pages/pocetna_page.dart';
 import 'package:dlwms_mobile/ui/pages/prisustva_page.dart';
 import 'package:dlwms_mobile/ui/pages/uspjeh_page.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,7 +15,8 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   int _selectedIndex = 2;
 
@@ -34,9 +38,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
 
     _tabController.addListener(() {
-      setState(() {
-        _selectedIndex = _tabController.index;
-      });
+      if (_selectedIndex != _tabController.index) {
+        setState(() {
+          _selectedIndex = _tabController.index;
+        });
+      }
     });
   }
 
@@ -108,7 +114,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: const Icon(Icons.menu),
+        leading: IconButton(
+          tooltip: 'Postavke',
+          icon: const Icon(Icons.menu),
+          onPressed: () => showModalBottomSheet<void>(
+            context: context,
+            showDragHandle: true,
+            builder: (_) => const _SettingsSheet(),
+          ),
+        ),
         title: _buildAnimatedAppBarTitle(context),
         centerTitle: true,
       ),
@@ -159,6 +173,59 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             icon: Icon(Icons.grade),
             label: 'Uspjeh',
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingsSheet extends StatelessWidget {
+  const _SettingsSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
+    final String backgroundSubtitle;
+    if (!BackgroundService.isSupported) {
+      backgroundSubtitle =
+          'Na ovom uređaju se obavijesti provjeravaju svakih 5 minuta dok je aplikacija otvorena.';
+    } else if (auth.backgroundCheckEnabled && !auth.backgroundRunning) {
+      backgroundSubtitle =
+          'Uključeno, ali servis nije pokrenut. Provjerite dozvolu za obavještenja.';
+    } else {
+      backgroundSubtitle =
+          'Svakih 5 minuta provjerava nove obavijesti i šalje obavještenje.';
+    }
+
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const CircleAvatar(child: Icon(Icons.person)),
+            title: Text(auth.username ?? 'Student'),
+            subtitle: const Text('DLWMS · FIT'),
+          ),
+          const Divider(),
+          SwitchListTile(
+            secondary: const Icon(Icons.notifications_active_outlined),
+            title: const Text('Provjera obavijesti u pozadini'),
+            subtitle: Text(backgroundSubtitle),
+            value: BackgroundService.isSupported && auth.backgroundCheckEnabled,
+            onChanged: BackgroundService.isSupported
+                ? auth.setBackgroundCheckEnabled
+                : null,
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text('Odjava'),
+            onTap: () {
+              Navigator.of(context).pop();
+              auth.logout();
+            },
+          ),
+          const SizedBox(height: 8),
         ],
       ),
     );

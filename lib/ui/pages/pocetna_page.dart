@@ -1,10 +1,9 @@
-import 'package:dlwms_mobile/provider/auth_provider.dart';
+import 'package:dlwms_mobile/provider/notification_provider.dart';
+import 'package:dlwms_mobile/ui/widgets/common.dart';
+import 'package:dlwms_mobile/ui/widgets/notification_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-
-import '../../provider/notification_provider.dart';
-import '../widgets/notification_card.dart';
 
 class PocetnaPage extends StatefulWidget {
   const PocetnaPage({super.key});
@@ -13,39 +12,53 @@ class PocetnaPage extends StatefulWidget {
   State<PocetnaPage> createState() => _PocetnaPageState();
 }
 
-class _PocetnaPageState extends State<PocetnaPage> with AutomaticKeepAliveClientMixin {
+class _PocetnaPageState extends State<PocetnaPage>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-
-    context.read<NotificationProvider>().fetchNotifications();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationProvider>().fetchNotifications();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final notificationProvider = context.watch<NotificationProvider>();
+    super.build(context);
+    final provider = context.watch<NotificationProvider>();
+    final notifications = provider.notifications ?? const [];
 
-    return switch(notificationProvider.state) {
-      NotificationProviderState.loading => const Center(child: CircularProgressIndicator()),
-      NotificationProviderState.error => const Center(child: Text("Failed to load notifications")),
-      NotificationProviderState.loaded when notificationProvider.notifications!.isEmpty =>
-      const Center(child: Text("No notifications available")),
-      NotificationProviderState.loaded =>
-          RefreshIndicator(
-            displacement: 50,
-            onRefresh: () => notificationProvider.fetchNotifications(),
-            child: ListView.builder(
-              physics: const BouncingScrollPhysics(),
-              itemCount: notificationProvider.notifications!.length,
-              itemBuilder: (context, index) {
-                final notification = notificationProvider.notifications![index];
-                return NotificationCard(notification: notification);
-              },
-            ),
-          )
+    return switch (provider.state) {
+      NotificationProviderState.loading =>
+        const Center(child: CircularProgressIndicator()),
+      NotificationProviderState.error => ErrorState(
+          message: provider.errorMessage ?? 'Obavijesti nije moguće učitati.',
+          onRetry: provider.fetchNotifications,
+        ),
+      NotificationProviderState.loaded => RefreshIndicator(
+          onRefresh: () => provider.fetchNotifications(silent: true),
+          child: notifications.isEmpty
+              ? const EmptyState(text: 'Nema obavijesti.')
+              : ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics()),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: notifications.length,
+                  itemBuilder: (context, index) {
+                    final notification = notifications[index];
+                    return NotificationCard(
+                      notification: notification,
+                      onTap: notification.url == null
+                          ? null
+                          : () => context.push('/home/obavijest',
+                              extra: notification),
+                    );
+                  },
+                ),
+        ),
     };
   }
 }

@@ -7,6 +7,7 @@ class CustomTextField extends StatefulWidget {
   final IconData prefixIcon;
   final bool isPassword;
   final bool enabled;
+  final ValueChanged<String>? onSubmitted;
 
   const CustomTextField({
     super.key,
@@ -16,6 +17,7 @@ class CustomTextField extends StatefulWidget {
     required this.prefixIcon,
     this.isPassword = false,
     this.enabled = true,
+    this.onSubmitted,
   });
 
   @override
@@ -37,12 +39,21 @@ class _CustomTextFieldState extends State<CustomTextField> {
       controller: widget.controller,
       enabled: widget.enabled,
       obscureText: widget.isPassword ? _obscurePassword : false,
+      autocorrect: false,
+      enableSuggestions: !widget.isPassword,
+      keyboardType: widget.isPassword ? null : TextInputType.text,
+      textInputAction:
+          widget.isPassword ? TextInputAction.done : TextInputAction.next,
+      autofillHints: [
+        widget.isPassword ? AutofillHints.password : AutofillHints.username,
+      ],
+      onSubmitted: widget.onSubmitted,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: widget.labelText,
         labelStyle: const TextStyle(color: Colors.white70),
         hintText: widget.hintText,
-        hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
         prefixIcon: Icon(widget.prefixIcon, color: Colors.white70),
         suffixIcon: widget.isPassword
             ? IconButton(
@@ -70,9 +81,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
           borderSide: const BorderSide(color: Colors.white, width: 2),
         ),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.1),
+        fillColor: Colors.white.withValues(alpha: 0.1),
       ),
     );
   }
 }
-

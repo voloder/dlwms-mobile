@@ -1,13 +1,10 @@
-import 'dart:io';
-
-import 'package:dlwms_mobile/models/notification.dart';
-import 'package:dlwms_mobile/services/notification_service.dart';
-import 'package:dlwms_mobile/util/cookie_parser.dart';
-import 'package:dlwms_mobile/util/form_templates.dart';
-import 'package:flutter/cupertino.dart' hide Notification;
+import 'package:dlwms_mobile/services/background_service.dart';
+import 'package:dlwms_mobile/services/dlwms_client.dart';
+import 'package:dlwms_mobile/services/local_notifications.dart';
+import 'package:dlwms_mobile/services/obavijesti_watcher.dart';
+import 'package:dlwms_mobile/util/credentials.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:http/http.dart' as http;
 
 enum AuthProviderState {
   authenticated,
@@ -18,9 +15,11 @@ enum AuthProviderState {
 }
 
 class AuthProvider extends ChangeNotifier {
-  AuthProvider(this._prefs) {
-    if(username != null && password != null) {
-      login(username!, password!, isAuto: true);
+  AuthProvider(this._prefs, {DlwmsClient? client})
+      : client = client ?? DlwmsClient() {
+    final saved = Credentials.read(_prefs);
+    if (saved != null) {
+      login(saved.username, saved.password, isAuto: true);
     } else {
       state = AuthProviderState.unauthenticated;
     }
@@ -28,101 +27,97 @@ class AuthProvider extends ChangeNotifier {
 
   final SharedPreferences _prefs;
 
-  final authUrl = Uri.parse("https://www.fit.ba/student/login.aspx");
+  /// Shared, authenticated DLWMS session used by all pages.
+  final DlwmsClient client;
+
+  SharedPreferences get prefs => _prefs;
 
   AuthProviderState _state = AuthProviderState.initial;
   AuthProviderState get state => _state;
-
-  String? _cookie;
 
   set state(AuthProviderState state) {
     _state = state;
     notifyListeners();
   }
 
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
 
-  set username(String? username) {
-    if (username == null) {
-      _prefs.remove("username");
-    } else {
-      _prefs.setString("username", username);
+  bool _backgroundRunning = false;
+  bool get backgroundRunning => _backgroundRunning;
+
+  String? get username => _prefs.getString(PrefKeys.username);
+
+  bool get backgroundCheckEnabled =>
+      _prefs.getBool(PrefKeys.backgroundCheck) ?? true;
+
+  Future<void> login(String username, String password,
+      {bool isAuto = false}) async {
+    username = username.trim();
+    if (username.isEmpty || password.isEmpty) {
+      _errorMessage = 'Unesite broj indeksa i lozinku.';
+      state = AuthProviderState.error;
+      return;
     }
-  }
 
-  set password(String? password) {
-    if (password == null) {
-      _prefs.remove("password");
-    } else {
-      _prefs.setString("password", password);
-    }
-  }
+    _errorMessage = null;
+    state =
+        isAuto ? AuthProviderState.initial : AuthProviderState.authenticating;
 
-  String? get username => _prefs.getString("username");
-  String? get password => _prefs.getString("password");
+    try {
+      await client.login(username, password);
 
-  Map<String, String> get headers => {
-        "Accept":
-            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Accept-Encoding": "gzip, deflate, br, zstd",
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Origin": "https://www.fit.ba",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "same-origin",
-        "Sec-Fetch-User": "?1",
-        "Priority": "u=0, i",
-        "Pragma": "no-cache",
-        "Cache-Control": "no-cache",
-        "TE": "trailers",
-        if (_cookie != null) "Cookie": _cookie!,
-      };
+      final previousUser = _prefs.getString(PrefKeys.username);
+      if (previousUser != null && previousUser != username) {
+        await ObavijestiWatcher.reset(_prefs);
+      }
+      await _prefs.setString(PrefKeys.username, username);
+      await _prefs.setString(PrefKeys.password, password);
 
-  Future<void> login(String username, String password, {bool isAuto = false}) async {
-    state = isAuto ? AuthProviderState.initial : AuthProviderState.authenticating;
-
-    final requestData = FormTemplates.loginForm(username, password);
-    final response =
-        await http.post(authUrl, body: requestData.codeUnits, headers: headers);
-
-    _cookie = getCookieFromSetCookieHeader(response.headers["set-cookie"]!);
-
-    debugPrint("Login response status: ${response.statusCode}");
-    debugPrint("Login cookie: ${_cookie}");
-
-    if (response.statusCode == 302 && _cookie != null) {
-      this.username = username;
-      this.password = password;
       state = AuthProviderState.authenticated;
-    } else {
+      _startBackgroundIfEnabled();
+    } on DlwmsAuthException catch (e) {
+      _errorMessage = e.message;
+      state = AuthProviderState.error;
+    } on DlwmsNetworkException catch (e) {
+      _errorMessage = isAuto
+          ? 'Nije moguće povezati se sa DLWMS-om. Provjerite internet konekciju.'
+          : e.message;
+      state = AuthProviderState.error;
+    } catch (e) {
+      _errorMessage = 'Neočekivana greška: $e';
       state = AuthProviderState.error;
     }
   }
 
-  Future<http.Response> fetchWithAuth(Uri url) async {
-    if (_cookie == null) {
-      throw Exception("No authentication cookie found");
+  Future<void> _startBackgroundIfEnabled() async {
+    await LocalNotifications.requestPermission();
+    if (backgroundCheckEnabled) {
+      _backgroundRunning = await BackgroundService.start(_prefs);
+    } else {
+      _backgroundRunning = await BackgroundService.isRunning;
     }
-
-    final response = await http.get(url, headers: headers);
-
-    return response;
+    notifyListeners();
   }
 
-  Future<http.Response> postWithAuth(Uri url, {Object? body}) async {
-    if (_cookie == null) {
-      throw Exception("No authentication cookie found");
+  Future<void> setBackgroundCheckEnabled(bool enabled) async {
+    await _prefs.setBool(PrefKeys.backgroundCheck, enabled);
+    if (enabled) {
+      _backgroundRunning = await BackgroundService.start(_prefs);
+    } else {
+      await BackgroundService.stop();
+      _backgroundRunning = false;
     }
-
-    final response = await http.post(url, headers: headers, body: body);
-
-    return response;
+    notifyListeners();
   }
 
-  void logout() {
-    _cookie = null;
+  Future<void> logout() async {
+    await BackgroundService.stop();
+    _backgroundRunning = false;
+    await client.logout();
+    await _prefs.remove(PrefKeys.password);
+    await ObavijestiWatcher.reset(_prefs);
+    _errorMessage = null;
     state = AuthProviderState.unauthenticated;
   }
 }

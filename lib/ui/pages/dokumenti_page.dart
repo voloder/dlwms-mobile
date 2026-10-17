@@ -1,4 +1,6 @@
+import 'package:dlwms_mobile/models/document.dart';
 import 'package:dlwms_mobile/provider/document_provider.dart';
+import 'package:dlwms_mobile/ui/widgets/common.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -23,7 +25,7 @@ class _DokumentiPageState extends State<DokumentiPage>
     _searchController = TextEditingController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DokumentiProvider>().fetchSubjects();
+      context.read<DokumentiProvider>().fetchInitial();
     });
   }
 
@@ -42,9 +44,9 @@ class _DokumentiPageState extends State<DokumentiPage>
     return switch (provider.state) {
       DokumentiProviderState.loading =>
         const Center(child: CircularProgressIndicator()),
-      DokumentiProviderState.error => _ErrorState(
-          message: provider.errorMessage ?? 'Failed to load documents',
-          onRetry: provider.fetchSubjects,
+      DokumentiProviderState.error => ErrorState(
+          message: provider.errorMessage ?? 'Dokumente nije moguće učitati.',
+          onRetry: provider.fetchInitial,
         ),
       DokumentiProviderState.loaded => _LoadedDokumentiView(
           provider: provider,
@@ -65,23 +67,32 @@ class _LoadedDokumentiView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final busy = provider.isBusy;
+    final hasFilters = provider.selectedType.isNotEmpty ||
+        provider.selectedSchoolYear.isNotEmpty ||
+        provider.keyword.isNotEmpty;
+
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: TextField(
             controller: searchController,
-            onChanged: provider.setSearchQuery,
+            enabled: !busy,
+            textInputAction: TextInputAction.search,
+            onSubmitted: provider.setKeyword,
             decoration: InputDecoration(
-              hintText: 'Search by title, type or author',
+              hintText: 'Pretraga po ključnim riječima',
               prefixIcon: const Icon(Icons.search),
-              suffixIcon: provider.searchQuery.isEmpty
+              isDense: true,
+              border: const OutlineInputBorder(),
+              suffixIcon: provider.keyword.isEmpty
                   ? null
                   : IconButton(
                       icon: const Icon(Icons.clear),
                       onPressed: () {
                         searchController.clear();
-                        provider.setSearchQuery('');
+                        provider.setKeyword('');
                       },
                     ),
             ),
@@ -91,157 +102,150 @@ class _LoadedDokumentiView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              Expanded(
-                child: DropdownButtonFormField<String>(
-                  initialValue: provider.selectedSubject.isEmpty
-                      ? null
-                      : provider.selectedSubject,
-                  decoration: const InputDecoration(labelText: 'Predmet'),
-                  isExpanded: true,
-                  items: provider.subjectOptions
-                      .where((option) => option.value.isNotEmpty)
-                      .map(
-                        (option) => DropdownMenuItem<String>(
-                          value: option.value,
-                          child: Text(option.label),
-                        ),
-                      )
-                      .toList(growable: false),
-                  onChanged: (value) => provider.setSubject(value ?? ''),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: Row(
-            children: [
-              Expanded(
-                child: DropdownButtonFormField<String>(
-                  initialValue: provider.selectedType.isEmpty
-                      ? null
-                      : provider.selectedType,
-                  decoration: const InputDecoration(labelText: 'Type'),
-                  isExpanded: true,
-                  items: provider.typeOptions
-                      .where((option) => option.value.isNotEmpty)
-                      .map(
-                        (option) => DropdownMenuItem<String>(
-                          value: option.value,
-                          child: Text(option.label),
-                        ),
-                      )
-                      .toList(growable: false),
-                  onChanged: (value) => provider.setType(value ?? ''),
+              SizedBox(
+                width: 96,
+                child: DlwmsDropdown(
+                  label: 'Godina',
+                  options: provider.yearOptions,
+                  value: provider.selectedYear,
+                  enabled: !busy,
+                  onChanged: provider.setYear,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: DropdownButtonFormField<String>(
-                  initialValue: provider.selectedSchoolYear.isEmpty
-                      ? null
-                      : provider.selectedSchoolYear,
-                  decoration: const InputDecoration(labelText: 'School year'),
-                  isExpanded: true,
-                  items: provider.schoolYearOptions
-                      .where((option) => option.value.isNotEmpty)
-                      .map(
-                        (option) => DropdownMenuItem<String>(
-                          value: option.value,
-                          child: Text(option.label),
-                        ),
-                      )
-                      .toList(growable: false),
-                  onChanged: (value) => provider.setSchoolYear(value ?? ''),
+                child: DlwmsDropdown(
+                  label: 'Predmet',
+                  options: provider.subjectOptions,
+                  value: provider.selectedSubject,
+                  enabled: !busy,
+                  onChanged: provider.setSubject,
                 ),
               ),
             ],
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: Row(
             children: [
               Expanded(
-                child: Text(
-                  'Page ${provider.currentPage}/${provider.totalPages} - ${provider.documents.length} item(s)',
-                  style: Theme.of(context).textTheme.bodySmall,
+                child: DlwmsDropdown(
+                  label: 'Vrsta',
+                  options: provider.typeOptions,
+                  value: provider.selectedType,
+                  enabled: !busy,
+                  includeEmpty: true,
+                  onChanged: provider.setType,
                 ),
               ),
-              TextButton(
-                onPressed: provider.clearFilters,
-                child: const Text('Clear filters'),
+              const SizedBox(width: 12),
+              Expanded(
+                child: DlwmsDropdown(
+                  label: 'Školska godina',
+                  options: provider.schoolYearOptions,
+                  value: provider.selectedSchoolYear,
+                  enabled: !busy,
+                  includeEmpty: true,
+                  onChanged: provider.setSchoolYear,
+                ),
               ),
             ],
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 8, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Stranica ${provider.currentPage} · ${provider.documents.length} dokument(a)',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              if (hasFilters)
+                TextButton(
+                  onPressed: busy
+                      ? null
+                      : () {
+                          searchController.clear();
+                          provider.clearFilters();
+                        },
+                  child: const Text('Poništi filtere'),
+                ),
+              IconButton(
+                tooltip: 'Prethodna stranica',
+                onPressed:
+                    busy || !provider.hasPreviousPage ? null : provider.previousPage,
+                icon: const Icon(Icons.chevron_left),
+              ),
+              IconButton(
+                tooltip: 'Sljedeća stranica',
+                onPressed:
+                    busy || !provider.hasNextPage ? null : provider.nextPage,
+                icon: const Icon(Icons.chevron_right),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 3, child: busy ? const LinearProgressIndicator() : null),
         Expanded(
-          child: provider.documents.isEmpty
-              ? const Center(child: Text('No documents found'))
-              : RefreshIndicator(
-                  onRefresh: provider.refresh,
-                  child: ListView.builder(
+          child: RefreshIndicator(
+            onRefresh: provider.refresh,
+            child: provider.documents.isEmpty
+                ? const EmptyState(
+                    text: 'Nema dokumenata za odabrane filtere.',
+                    icon: Icons.description_outlined,
+                  )
+                : ListView.builder(
                     physics: const AlwaysScrollableScrollPhysics(
                         parent: BouncingScrollPhysics()),
+                    padding: const EdgeInsets.only(bottom: 16),
                     itemCount: provider.documents.length,
-                    itemBuilder: (context, index) {
-                      final document = provider.documents[index];
-
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 6),
-                        child: ListTile(
-                          leading: Icon(_iconForType(document.fileType)),
-                          title: Text(document.title),
-                          subtitle: Text(
-                            '${document.type} - ${document.author} - ${document.sizeKb} KB${document.date != null ? ' - ${DateFormat('dd.MM.yyyy').format(document.date!)}' : ''}',
-                          ),
-                        ),
-                      );
-                    },
+                    itemBuilder: (context, index) => _DocumentTile(
+                      document: provider.documents[index],
+                      provider: provider,
+                    ),
                   ),
-                ),
+          ),
         ),
       ],
     );
   }
-
-  IconData _iconForType(String type) {
-    switch (type) {
-      case 'pdf':
-        return Icons.picture_as_pdf_outlined;
-      case 'archive':
-        return Icons.folder_zip_outlined;
-      case 'doc':
-        return Icons.description_outlined;
-      default:
-        return Icons.insert_drive_file_outlined;
-    }
-  }
 }
 
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message, required this.onRetry});
+class _DocumentTile extends StatelessWidget {
+  const _DocumentTile({required this.document, required this.provider});
 
-  final String message;
-  final Future<void> Function() onRetry;
+  final DlwmsDocument document;
+  final DokumentiProvider provider;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 38),
-            const SizedBox(height: 8),
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
-          ],
-        ),
+    final downloading = provider.downloadingId == document.id;
+    final details = [
+      document.type,
+      document.author,
+      '${document.sizeKb} KB',
+      if (document.date != null) DateFormat('dd.MM.yyyy').format(document.date!),
+    ].join(' · ');
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: ListTile(
+        leading: Icon(iconForFileType(document.fileType)),
+        title: Text(document.title),
+        subtitle: Text(details),
+        trailing: downloading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.download),
+        onTap: provider.downloadingId != null || document.postBackTarget == null
+            ? null
+            : () => downloadAndOpen(context, () => provider.download(document)),
       ),
     );
   }
