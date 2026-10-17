@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "v*"
+  # Lets you build an APK from any branch via "Run workflow" (no release).
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,36 +18,60 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: true
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Extract tag version
-        id: tag
-        run: |
-          TAG=${GITHUB_REF#refs/tags/}
-          echo "TAG=$TAG" >> $GITHUB_ENV
+      - name: Run tests
+        run: flutter test
 
       - name: Build APK
         run: flutter build apk --release
 
+      # The launcher activity must be inside the APK, otherwise the app
+      # crashes on startup (ClassNotFoundException for MainActivity).
+      - name: Verify launcher activity is packaged
+        run: |
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          if ! unzip -p "$APK" 'classes*.dex' | grep -a -q 'Ldev/voloder/dlwms/MainActivity;'; then
+            echo "::error::dev.voloder.dlwms.MainActivity is missing from the APK. Is android/app/src/main/kotlin/dev/voloder/dlwms/MainActivity.kt committed?"
+            exit 1
+          fi
+          echo "MainActivity found in APK."
+
       - name: Rename APK
         run: |
-          APP_NAME=$(basename $GITHUB_REPOSITORY)
-          APK_NAME="${APP_NAME}-${TAG}.apk"
+          APP_NAME=$(basename "$GITHUB_REPOSITORY")
+          VERSION=${GITHUB_REF_NAME//\//-}
+          APK_NAME="${APP_NAME}-${VERSION}.apk"
 
-          mv build/app/outputs/flutter-apk/app-release.apk $APK_NAME
-          echo "APK_NAME=$APK_NAME" >> $GITHUB_ENV
+          mv build/app/outputs/flutter-apk/app-release.apk "$APK_NAME"
+          echo "APK_NAME=$APK_NAME" >> "$GITHUB_ENV"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APK_NAME }}
+          path: ${{ env.APK_NAME }}
 
       - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           files: ${{ env.APK_NAME }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
