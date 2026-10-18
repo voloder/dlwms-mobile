@@ -62,11 +62,6 @@ class ThemeProvider extends ChangeNotifier {
         DynamicSchemeVariant.monochrome, 'Monohromatski', 'Samo nijanse sive'),
   ];
 
-  static const Map<double, String> contrastLevels = {
-    0.0: 'Standardni',
-    0.5: 'Srednji',
-    1.0: 'Visoki',
-  };
 
   /// Primary colour of the device's dynamic (wallpaper) palette, if the
   /// platform provides one (Android 12+). Set by the app root.

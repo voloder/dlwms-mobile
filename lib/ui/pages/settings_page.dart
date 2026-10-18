@@ -220,61 +220,7 @@ class _AppearanceCard extends StatelessWidget {
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
-          child: Text('Stil palete', style: text.titleSmall),
-        ),
-        SizedBox(
-          height: 96,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: ThemeProvider.styles.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final style = ThemeProvider.styles[index];
-              return _PaletteStyleTile(
-                style: style,
-                selected: theme.variant == style.variant,
-                scheme: theme.schemeFor(
-                  Theme.of(context).brightness,
-                  variant: style.variant,
-                ),
-                onTap: () => theme.setVariant(style.variant),
-              );
-            },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
-          child: Text('Kontrast', style: text.titleSmall),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: SizedBox(
-            width: double.infinity,
-            child: SegmentedButton<double>(
-              showSelectedIcon: false,
-              segments: [
-                for (final entry in ThemeProvider.contrastLevels.entries)
-                  ButtonSegment(value: entry.key, label: Text(entry.value)),
-              ],
-              selected: {theme.contrast},
-              onSelectionChanged: (value) => theme.setContrast(value.first),
-            ),
-          ),
-        ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-            child: TextButton.icon(
-              onPressed: theme.reset,
-              icon: const Icon(Icons.restart_alt_rounded, size: 18),
-              label: const Text('Vrati zadano'),
-            ),
-          ),
-        ),
+        SizedBox(height: 12),
       ],
     );
   }
