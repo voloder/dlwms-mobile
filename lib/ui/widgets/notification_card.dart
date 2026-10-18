@@ -107,7 +107,7 @@ class SubjectAvatar extends StatelessWidget {
     final palette = [
       (scheme.primaryContainer, scheme.onPrimaryContainer),
       (scheme.secondaryContainer, scheme.onSecondaryContainer),
-      (scheme.tertiaryContainer, scheme.onTertiaryContainer),
+      (scheme.surfaceContainerHighest, scheme.primary),
     ];
     final (background, foreground) = subject.isEmpty
         ? (scheme.surfaceContainerHighest, scheme.onSurfaceVariant)

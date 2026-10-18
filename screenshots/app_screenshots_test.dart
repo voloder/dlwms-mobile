@@ -183,9 +183,8 @@ void main() {
       ...loggedIn,
       'theme_mode': 'dark',
       'theme_seed': 0xFF00897B,
-      'theme_variant': 'vibrant',
     });
-    await _shot(tester, 'custom_teal_vibrant_pocetna');
+    await _shot(tester, 'custom_teal_pocetna');
     await tester.pumpWidget(const SizedBox());
     await _settle(tester, 2);
   });

@@ -18,7 +18,10 @@ class AppLogo extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [scheme.primary, scheme.tertiary],
+          colors: [
+            scheme.primary,
+            Color.lerp(scheme.primary, Colors.black, 0.25)!,
+          ],
         ),
         boxShadow: [
           BoxShadow(

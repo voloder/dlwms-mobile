@@ -65,7 +65,7 @@ class _DlwmsMobileState extends State<DlwmsMobile> {
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) {
         // Only the wallpaper's primary colour is used, as a seed, so the
-        // palette style and contrast settings still apply.
+        // scheme is built the same way as for a chosen accent colour.
         theme.updateDeviceSeed(lightDynamic?.primary);
 
         return MaterialApp.router(

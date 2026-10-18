@@ -9,17 +9,8 @@ class AccentPreset {
   final Color color;
 }
 
-/// A palette style ([DynamicSchemeVariant]) with a Bosnian label.
-class PaletteStyle {
-  const PaletteStyle(this.variant, this.name, this.description);
-
-  final DynamicSchemeVariant variant;
-  final String name;
-  final String description;
-}
-
-/// Appearance settings: light/dark mode and the colour scheme (accent colour,
-/// palette style, contrast, or the device's wallpaper colours).
+/// Appearance settings: light/dark mode and the accent colour (a preset, a
+/// custom colour or the device's wallpaper colours).
 class ThemeProvider extends ChangeNotifier {
   ThemeProvider(this._prefs);
 
@@ -28,8 +19,8 @@ class ThemeProvider extends ChangeNotifier {
   static const _modeKey = 'theme_mode';
   static const _seedKey = 'theme_seed';
   static const _deviceKey = 'theme_device_colors';
-  static const _variantKey = 'theme_variant';
-  static const _contrastKey = 'theme_contrast';
+  // Used by an earlier version; cleared on reset.
+  static const _legacyKeys = ['theme_variant', 'theme_contrast'];
 
   static const Color defaultSeed = Color(0xFF1E5AA8);
 
@@ -47,21 +38,6 @@ class ThemeProvider extends ChangeNotifier {
     AccentPreset('Indigo', Color(0xFF3949AB)),
     AccentPreset('Grafit', Color(0xFF546E7A)),
   ];
-
-  static const List<PaletteStyle> styles = [
-    PaletteStyle(DynamicSchemeVariant.tonalSpot, 'Uravnotežen',
-        'Mirni tonovi izvedeni iz boje'),
-    PaletteStyle(DynamicSchemeVariant.vibrant, 'Živ', 'Zasićenije boje'),
-    PaletteStyle(DynamicSchemeVariant.expressive, 'Ekspresivan',
-        'Razigrane, kontrastne nijanse'),
-    PaletteStyle(DynamicSchemeVariant.fidelity, 'Vjeran boji',
-        'Što bliže odabranoj boji'),
-    PaletteStyle(
-        DynamicSchemeVariant.neutral, 'Neutralan', 'Gotovo sive površine'),
-    PaletteStyle(
-        DynamicSchemeVariant.monochrome, 'Monohromatski', 'Samo nijanse sive'),
-  ];
-
 
   /// Primary colour of the device's dynamic (wallpaper) palette, if the
   /// platform provides one (Android 12+). Set by the app root.
@@ -89,27 +65,17 @@ class ThemeProvider extends ChangeNotifier {
 
   bool get useDeviceColors => _prefs.getBool(_deviceKey) ?? false;
 
-  DynamicSchemeVariant get variant {
-    final name = _prefs.getString(_variantKey);
-    return DynamicSchemeVariant.values.firstWhere(
-      (v) => v.name == name,
-      orElse: () => DynamicSchemeVariant.tonalSpot,
-    );
-  }
-
-  double get contrast => _prefs.getDouble(_contrastKey) ?? 0.0;
-
   /// The seed actually used: wallpaper colour when enabled and available.
   Color get effectiveSeed =>
       useDeviceColors && _deviceSeed != null ? _deviceSeed! : seedColor;
 
-  ColorScheme schemeFor(Brightness brightness, {Color? seed,
-      DynamicSchemeVariant? variant}) {
+  /// Material 3 scheme from the accent colour. Only the primary/secondary
+  /// families and neutral surfaces are used in the UI; the tertiary family is
+  /// a hue-shifted colour (blue → green) and is avoided on purpose.
+  ColorScheme schemeFor(Brightness brightness, {Color? seed}) {
     return ColorScheme.fromSeed(
       seedColor: seed ?? effectiveSeed,
       brightness: brightness,
-      dynamicSchemeVariant: variant ?? this.variant,
-      contrastLevel: contrast,
     );
   }
 
@@ -129,18 +95,8 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setVariant(DynamicSchemeVariant variant) async {
-    await _prefs.setString(_variantKey, variant.name);
-    notifyListeners();
-  }
-
-  Future<void> setContrast(double value) async {
-    await _prefs.setDouble(_contrastKey, value);
-    notifyListeners();
-  }
-
   Future<void> reset() async {
-    for (final key in [_modeKey, _seedKey, _deviceKey, _variantKey, _contrastKey]) {
+    for (final key in [_modeKey, _seedKey, _deviceKey, ..._legacyKeys]) {
       await _prefs.remove(key);
     }
     notifyListeners();

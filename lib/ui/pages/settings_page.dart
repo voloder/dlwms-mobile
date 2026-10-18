@@ -220,7 +220,7 @@ class _AppearanceCard extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -271,7 +271,6 @@ class _ThemePreview extends StatelessWidget {
                 Row(children: [
                   dot(scheme.primary),
                   dot(scheme.secondary),
-                  dot(scheme.tertiary),
                   dot(scheme.surfaceContainerHigh),
                 ]),
               ],
@@ -443,7 +442,7 @@ class _ColorPickerDialogState extends State<_ColorPickerDialog> {
                   preview.primary,
                   preview.primaryContainer,
                   preview.secondary,
-                  preview.tertiary,
+                  preview.secondaryContainer,
                 ])
                   Expanded(
                     child: Container(
@@ -489,73 +488,6 @@ class _ColorPickerDialogState extends State<_ColorPickerDialog> {
           child: const Text('Primijeni'),
         ),
       ],
-    );
-  }
-}
-
-class _PaletteStyleTile extends StatelessWidget {
-  const _PaletteStyleTile({
-    required this.style,
-    required this.selected,
-    required this.scheme,
-    required this.onTap,
-  });
-
-  final PaletteStyle style;
-  final bool selected;
-  final ColorScheme scheme;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final current = Theme.of(context).colorScheme;
-
-    return Tooltip(
-      message: style.description,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          width: 104,
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(AppRadius.medium),
-            border: Border.all(
-              color: selected ? current.primary : current.outlineVariant,
-              width: selected ? 2 : 1,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: SizedBox(
-                  height: 26,
-                  child: Row(
-                    children: [
-                      Expanded(flex: 2, child: ColoredBox(color: scheme.primary)),
-                      Expanded(child: ColoredBox(color: scheme.secondary)),
-                      Expanded(child: ColoredBox(color: scheme.tertiary)),
-                    ],
-                  ),
-                ),
-              ),
-              Text(
-                style.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: scheme.onSurface,
-                    ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
