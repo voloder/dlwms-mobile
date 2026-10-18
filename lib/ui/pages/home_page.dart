@@ -225,14 +225,9 @@ class _SettingsSheet extends StatelessWidget {
               secondary: const Icon(Icons.filter_alt_outlined),
               title: const Text('Prikaži samo relevantne obavijesti'),
               subtitle: const Text(
-                'Na Početnoj i u obavještenjima na telefonu prikazuju se samo '
-                'obavijesti iz predmeta tvoje trenutne godine studija (iz oba '
-                'semestra, prema listi predmeta na stranici Nastava) i iz '
-                'predmeta iz ranijih godina koje još nisi položio/la, tj. koji '
-                'nemaju ocjenu na stranici Uspjeh. Opće obavijesti fakulteta, '
-                'koje nisu vezane za predmet, uvijek se prikazuju.',
+                'Predmeti tvoje godine studija i oni bez ocjene. '
+                'Opće obavijesti se uvijek prikazuju.',
               ),
-              isThreeLine: true,
               value: notifications.relevantOnly,
               onChanged: notifications.setRelevantOnly,
             ),
@@ -256,15 +251,12 @@ class _SettingsSheet extends StatelessWidget {
 
   static String _backgroundDescription(AuthProvider auth) {
     if (!BackgroundService.isSupported) {
-      return 'Na ovom uređaju se obavijesti provjeravaju svakih 5 minuta dok '
-          'je aplikacija otvorena.';
+      return 'Svakih 5 minuta dok je aplikacija otvorena.';
     }
     if (auth.backgroundCheckEnabled && !auth.backgroundRunning) {
-      return 'Uključeno, ali provjera nije pokrenuta. Provjerite dozvolu za '
-          'obavještenja.';
+      return 'Nije pokrenuta. Provjeri dozvolu za obavještenja.';
     }
-    return 'Svakih 5 minuta provjerava nove obavijesti i javi kad stigne nova, '
-        'i kad je aplikacija zatvorena.';
+    return 'Svakih 5 minuta, i kad je aplikacija zatvorena.';
   }
 
   static String _lastCheckText(CheckStatus? status) {
