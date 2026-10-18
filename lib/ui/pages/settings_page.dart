@@ -15,7 +15,10 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Postavke')),
+      appBar: AppBar(
+        title: Text('Postavke',
+            style: Theme.of(context).textTheme.headlineSmall),
+      ),
       body: ListView(
         padding: const EdgeInsets.only(bottom: 32),
         children: const [
@@ -149,7 +152,6 @@ class _AppearanceCard extends StatelessWidget {
 
     return _Group(
       children: [
-        const _ThemePreview(),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Text('Tema', style: text.titleSmall),
@@ -222,63 +224,6 @@ class _AppearanceCard extends StatelessWidget {
         ),
         const SizedBox(height: 16),
       ],
-    );
-  }
-}
-
-/// Miniature of the app in the current colours.
-class _ThemePreview extends StatelessWidget {
-  const _ThemePreview();
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
-
-    Widget dot(Color color) => Container(
-          width: 14,
-          height: 14,
-          margin: const EdgeInsets.only(right: 6),
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        );
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(AppRadius.medium - 4),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: scheme.primaryContainer,
-              borderRadius: BorderRadius.circular(AppRadius.small + 2),
-            ),
-            child: Icon(Icons.campaign_outlined,
-                color: scheme.onPrimaryContainer),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Pregled teme', style: text.titleSmall),
-                const SizedBox(height: 6),
-                Row(children: [
-                  dot(scheme.primary),
-                  dot(scheme.secondary),
-                  dot(scheme.surfaceContainerHigh),
-                ]),
-              ],
-            ),
-          ),
-          FilledButton.tonal(onPressed: () {}, child: const Text('Dugme')),
-        ],
-      ),
     );
   }
 }
