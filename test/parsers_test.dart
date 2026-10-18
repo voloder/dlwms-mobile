@@ -7,6 +7,8 @@ import 'package:dlwms_mobile/services/nastava_service.dart';
 import 'package:dlwms_mobile/services/notification_service.dart';
 import 'package:dlwms_mobile/services/obavijesti_watcher.dart';
 import 'package:dlwms_mobile/services/prisustvo_service.dart';
+import 'package:dlwms_mobile/services/check_status.dart';
+import 'package:dlwms_mobile/services/relevant_subjects.dart';
 import 'package:dlwms_mobile/services/uspjeh_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -90,7 +92,7 @@ void main() {
       final n = NotificationService.parseNotifications(page).single;
       expect(n.url,
           'https://www.fit.ba/student/obavijesti/opsirnije.aspx?sqs=AB%2BC');
-      expect(n.subject, 'Opće');
+      expect(n.subject, isEmpty);
       expect(n.dateTime, DateTime(2026, 10, 16, 22, 14));
     });
 
@@ -300,6 +302,73 @@ void main() {
 
       expect(await ObavijestiWatcher.detectNew([], prefs), isEmpty);
       expect(prefs.getStringList(ObavijestiWatcher.seenKey), isNull);
+    });
+  });
+
+  group('RelevantSubjects', () {
+    DlwmsNotification n(String subject) => DlwmsNotification(
+          id: subject,
+          title: 't',
+          content: '',
+          dateTime: DateTime(2026),
+          subject: subject,
+          author: '',
+          authorEmail: '',
+        );
+
+    test('combines current-year and ungraded subjects without duplicates', () {
+      final names = RelevantSubjects.combine(
+        currentYearSubjects: ['Razvoj softvera II', 'Kvalitet softvera'],
+        ungradedSubjects: ['Kvalitet softvera', 'Matematika III*'],
+      );
+      expect(names, ['Kvalitet softvera', 'Matematika III', 'Razvoj softvera II']);
+    });
+
+    test('keeps relevant subjects and faculty-wide notices', () {
+      final list = [
+        n('Razvoj softvera II'),
+        n('Programiranje I'),
+        n(''),
+        n('  kvalitet   SOFTVERA '),
+      ];
+      final shown = RelevantSubjects.filter(
+          list, ['Razvoj softvera II', 'Kvalitet softvera']);
+      expect(shown.map((x) => x.subject),
+          ['Razvoj softvera II', '', '  kvalitet   SOFTVERA ']);
+    });
+
+    test('hides nothing when the subject list is unavailable', () {
+      final list = [n('Programiranje I'), n('Razvoj softvera II')];
+      expect(RelevantSubjects.filter(list, null), list);
+      expect(RelevantSubjects.filter(list, const []), list);
+    });
+
+    test('new items are remembered as seen even if the filter hides them', () async {
+      SharedPreferences.setMockInitialValues({
+        ObavijestiWatcher.seenKey: ['old'],
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final fresh = await ObavijestiWatcher.detectNew(
+          [n('Programiranje I'), n('old')], prefs);
+      expect(fresh.single.subject, 'Programiranje I');
+      expect(prefs.getStringList(ObavijestiWatcher.seenKey),
+          contains('Programiranje I'));
+    });
+  });
+
+  group('CheckStatus', () {
+    test('round-trips through preferences', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      expect(CheckStatus.read(prefs), isNull);
+
+      await CheckStatus.save(prefs, CheckResult.ok, newCount: 2);
+      final status = CheckStatus.read(prefs)!;
+      expect(status.result, CheckResult.ok);
+      expect(status.newCount, 2);
+
+      await CheckStatus.save(prefs, CheckResult.authFailed);
+      expect(CheckStatus.read(prefs)!.result, CheckResult.authFailed);
     });
   });
 }

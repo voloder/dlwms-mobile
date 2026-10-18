@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - "v*"
+    # Every branch push is compiled and tested; only tags create a release.
+    branches:
+      - "**"
   # Lets you build an APK from any branch via "Run workflow" (no release).
   workflow_dispatch:
 

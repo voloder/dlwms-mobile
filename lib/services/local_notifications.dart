@@ -59,13 +59,29 @@ class LocalNotifications {
     return true;
   }
 
+  /// Removes a channel this app no longer uses (Android only).
+  static Future<void> deleteChannel(String channelId) async {
+    await init();
+    if (!_initialized) return;
+    try {
+      await _plugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.deleteNotificationChannel(channelId: channelId);
+    } catch (e) {
+      debugPrint('[LocalNotifications] deleteChannel failed: $e');
+    }
+  }
+
   static Future<void> showNewNotification(DlwmsNotification notification) async {
     await init();
     if (!_initialized) return;
 
+    final subject =
+        notification.subject.isEmpty ? null : notification.subject;
     final body = notification.content.isNotEmpty
         ? notification.content
-        : '${notification.subject} · ${notification.author}';
+        : [if (subject != null) subject, notification.author].join(' · ');
 
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -74,11 +90,11 @@ class LocalNotifications {
         channelDescription: _channelDescription,
         importance: Importance.high,
         priority: Priority.high,
-        subText: notification.subject,
+        subText: subject,
         styleInformation: BigTextStyleInformation(
           body,
           contentTitle: notification.title,
-          summaryText: notification.subject,
+          summaryText: subject,
         ),
       ),
       iOS: const DarwinNotificationDetails(

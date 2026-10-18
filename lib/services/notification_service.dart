@@ -64,7 +64,7 @@ class NotificationService {
       title: title,
       content: content,
       dateTime: dateTime,
-      subject: subject.isNotEmpty ? subject : (fallbackSubject ?? 'Opće'),
+      subject: subject.isNotEmpty ? subject : (fallbackSubject ?? ''),
       author: author.isEmpty ? 'Nepoznat autor' : author,
       authorEmail: authorEmail,
       url: url,

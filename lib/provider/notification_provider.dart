@@ -3,16 +3,20 @@ import 'dart:async';
 import 'package:dlwms_mobile/models/notification.dart';
 import 'package:dlwms_mobile/provider/auth_provider.dart';
 import 'package:dlwms_mobile/services/background_service.dart';
+import 'package:dlwms_mobile/services/check_status.dart';
 import 'package:dlwms_mobile/services/dlwms_client.dart';
-import 'package:dlwms_mobile/services/local_notifications.dart';
 import 'package:dlwms_mobile/services/notification_service.dart';
 import 'package:dlwms_mobile/services/obavijesti_watcher.dart';
+import 'package:dlwms_mobile/services/relevant_subjects.dart';
 import 'package:flutter/widgets.dart';
 
 enum NotificationProviderState { loading, loaded, error }
 
 /// Home-page announcements. Refreshes every 300 s while the app is open, and
-/// immediately when the background service reports new items.
+/// when the background service reports a check with new items.
+///
+/// Also owns the "Prikaži samo relevantne obavijesti" setting and the status
+/// of the last check, both shown in the settings sheet.
 ///
 /// On Android the background service is responsible for alerts; when it isn't
 /// running (iOS, or the user turned it off) this provider raises them itself
@@ -41,25 +45,80 @@ class NotificationProvider extends ChangeNotifier {
   void update(AuthProvider authProvider) {
     _authProvider = authProvider;
     if (_isAuthenticated) {
+      _relevantSubjects ??= RelevantSubjects.cached(authProvider.prefs);
       _startTimer();
     } else {
       _stopTimer();
       _notifications = null;
+      _relevantSubjects = null;
       _state = NotificationProviderState.loading;
     }
   }
 
   List<DlwmsNotification>? _notifications;
+  List<String>? _relevantSubjects;
+  bool _loadingSubjects = false;
   NotificationProviderState _state = NotificationProviderState.loading;
   String? _errorMessage;
 
-  List<DlwmsNotification>? get notifications => _notifications;
   NotificationProviderState get state => _state;
   String? get errorMessage => _errorMessage;
+
+  /// Everything on the DLWMS home page.
+  List<DlwmsNotification>? get allNotifications => _notifications;
+
+  /// What the Početna tab shows: all announcements, or only relevant ones.
+  List<DlwmsNotification>? get notifications {
+    final all = _notifications;
+    if (all == null || !relevantOnly) return all;
+    return RelevantSubjects.filter(all, _relevantSubjects);
+  }
+
+  /// How many announcements the filter currently hides.
+  int get hiddenCount =>
+      (_notifications?.length ?? 0) - (notifications?.length ?? 0);
+
+  bool get relevantOnly {
+    final prefs = _authProvider?.prefs;
+    return prefs != null && RelevantSubjects.isEnabled(prefs);
+  }
+
+  /// Subjects that count as relevant (null until loaded once).
+  List<String>? get relevantSubjects => _relevantSubjects;
+  bool get loadingRelevantSubjects => _loadingSubjects;
+
+  CheckStatus? get lastCheck {
+    final prefs = _authProvider?.prefs;
+    return prefs == null ? null : CheckStatus.read(prefs);
+  }
 
   set state(NotificationProviderState state) {
     _state = state;
     notifyListeners();
+  }
+
+  Future<void> setRelevantOnly(bool enabled) async {
+    final auth = _authProvider;
+    if (auth == null) return;
+    await RelevantSubjects.setEnabled(auth.prefs, enabled);
+    notifyListeners();
+    if (enabled) await refreshRelevantSubjects();
+  }
+
+  /// Loads the relevant subject list (from cache unless stale or [force]).
+  Future<void> refreshRelevantSubjects({bool force = false}) async {
+    final auth = _authProvider;
+    if (auth == null || _loadingSubjects) return;
+
+    _loadingSubjects = true;
+    notifyListeners();
+    try {
+      _relevantSubjects =
+          await RelevantSubjects.load(auth.client, auth.prefs, force: force);
+    } finally {
+      _loadingSubjects = false;
+      notifyListeners();
+    }
   }
 
   bool _fetching = false;
@@ -76,6 +135,11 @@ class NotificationProvider extends ChangeNotifier {
     }
 
     try {
+      if (relevantOnly) {
+        _relevantSubjects =
+            await RelevantSubjects.load(auth.client, auth.prefs);
+      }
+
       final page = await auth.client.fetch(DlwmsClient.homeUrl);
       final list = NotificationService.parseNotifications(page);
 
@@ -86,8 +150,13 @@ class NotificationProvider extends ChangeNotifier {
       await _handleNewItems(auth, list);
     } catch (e) {
       _errorMessage = e.toString();
+      if (!await BackgroundService.isRunning) {
+        await CheckStatus.save(auth.prefs, CheckResult.error);
+      }
       if (!silent || _notifications == null) {
         state = NotificationProviderState.error;
+      } else {
+        notifyListeners();
       }
     } finally {
       _fetching = false;
@@ -101,9 +170,10 @@ class NotificationProvider extends ChangeNotifier {
     if (await BackgroundService.isRunning) return;
 
     final fresh = await ObavijestiWatcher.detectNew(list, auth.prefs);
-    for (final notification in fresh.take(5)) {
-      await LocalNotifications.showNewNotification(notification);
-    }
+    final alerted = await ObavijestiWatcher.alert(fresh, auth.client, auth.prefs);
+    await CheckStatus.save(auth.prefs, CheckResult.ok,
+        newCount: alerted.length);
+    notifyListeners();
   }
 
   Future<DlwmsNotificationDetail> fetchDetail(DlwmsNotification n) async {
@@ -116,8 +186,16 @@ class NotificationProvider extends ChangeNotifier {
     return NotificationService.parseDetail(page);
   }
 
-  void _onServiceData(Object data) {
-    if (data is Map && data['type'] == newObavijestiMessage) {
+  Future<void> _onServiceData(Object data) async {
+    if (data is! Map || data['type'] != checkDoneMessage) return;
+
+    final prefs = _authProvider?.prefs;
+    if (prefs == null) return;
+    await prefs.reload();
+    _relevantSubjects = RelevantSubjects.cached(prefs) ?? _relevantSubjects;
+    notifyListeners();
+
+    if ((CheckStatus.read(prefs)?.newCount ?? 0) > 0) {
       fetchNotifications(silent: true);
     }
   }

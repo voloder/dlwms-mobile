@@ -1,7 +1,9 @@
 import 'package:dlwms_mobile/services/background_service.dart';
+import 'package:dlwms_mobile/services/check_status.dart';
 import 'package:dlwms_mobile/services/dlwms_client.dart';
 import 'package:dlwms_mobile/services/local_notifications.dart';
 import 'package:dlwms_mobile/services/obavijesti_watcher.dart';
+import 'package:dlwms_mobile/services/relevant_subjects.dart';
 import 'package:dlwms_mobile/util/credentials.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,6 +72,7 @@ class AuthProvider extends ChangeNotifier {
       final previousUser = _prefs.getString(PrefKeys.username);
       if (previousUser != null && previousUser != username) {
         await ObavijestiWatcher.reset(_prefs);
+        await RelevantSubjects.clear(_prefs);
       }
       await _prefs.setString(PrefKeys.username, username);
       await _prefs.setString(PrefKeys.password, password);
@@ -117,6 +120,8 @@ class AuthProvider extends ChangeNotifier {
     await client.logout();
     await _prefs.remove(PrefKeys.password);
     await ObavijestiWatcher.reset(_prefs);
+    await RelevantSubjects.clear(_prefs);
+    await CheckStatus.clear(_prefs);
     _errorMessage = null;
     state = AuthProviderState.unauthenticated;
   }

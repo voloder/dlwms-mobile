@@ -2,6 +2,7 @@ import 'package:dlwms_mobile/models/notification.dart';
 import 'package:dlwms_mobile/services/dlwms_client.dart';
 import 'package:dlwms_mobile/services/local_notifications.dart';
 import 'package:dlwms_mobile/services/notification_service.dart';
+import 'package:dlwms_mobile/services/relevant_subjects.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Detects announcements ("Obavijesti") that haven't been seen before and
@@ -17,7 +18,8 @@ class ObavijestiWatcher {
   static const int _maxAlertsPerCheck = 5;
 
   /// Fetches the home page, compares it with what was seen before and shows
-  /// local notifications for new items. Returns the new items.
+  /// local notifications for new items. Returns the items that were alerted
+  /// (new and, if the filter is on, relevant).
   static Future<List<DlwmsNotification>> checkForNew(
     DlwmsClient client,
     SharedPreferences prefs,
@@ -25,11 +27,29 @@ class ObavijestiWatcher {
     final page = await client.fetch(DlwmsClient.homeUrl);
     final current = NotificationService.parseNotifications(page);
     final fresh = await detectNew(current, prefs);
+    return alert(fresh, client, prefs);
+  }
 
-    for (final notification in fresh.take(_maxAlertsPerCheck)) {
+  /// Shows a local notification for each of [fresh], skipping irrelevant
+  /// subjects when "Prikaži samo relevantne obavijesti" is on. Skipped items
+  /// stay marked as seen, so turning the filter off later doesn't replay them.
+  static Future<List<DlwmsNotification>> alert(
+    List<DlwmsNotification> fresh,
+    DlwmsClient client,
+    SharedPreferences prefs,
+  ) async {
+    if (fresh.isEmpty) return const [];
+
+    var toAlert = fresh;
+    if (RelevantSubjects.isEnabled(prefs)) {
+      final subjects = await RelevantSubjects.load(client, prefs);
+      toAlert = RelevantSubjects.filter(fresh, subjects);
+    }
+
+    for (final notification in toAlert.take(_maxAlertsPerCheck)) {
       await LocalNotifications.showNewNotification(notification);
     }
-    return fresh;
+    return toAlert;
   }
 
   /// Returns items from [current] that weren't seen before and remembers them.
