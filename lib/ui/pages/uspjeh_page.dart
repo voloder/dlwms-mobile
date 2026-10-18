@@ -1,5 +1,6 @@
 import 'package:dlwms_mobile/models/uspjeh.dart';
 import 'package:dlwms_mobile/provider/uspjeh_provider.dart';
+import 'package:dlwms_mobile/theme/app_theme.dart';
 import 'package:dlwms_mobile/ui/widgets/common.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -14,6 +15,8 @@ class UspjehPage extends StatefulWidget {
 
 class _UspjehPageState extends State<UspjehPage>
     with AutomaticKeepAliveClientMixin {
+  bool _showPassed = true;
+
   @override
   bool get wantKeepAlive => true;
 
@@ -41,130 +44,163 @@ class _UspjehPageState extends State<UspjehPage>
       return const Center(child: CircularProgressIndicator());
     }
 
-    return DefaultTabController(
-      length: 2,
-      child: NestedScrollView(
-        headerSliverBuilder: (context, _) => [
-          SliverToBoxAdapter(child: _StudyInfoCard(data: data)),
-          SliverToBoxAdapter(
-            child: TabBar(
-              tabs: [
-                Tab(text: 'Položeni (${data.passedCount})'),
-                Tab(text: 'Nepoloženi (${data.pendingCount})'),
+    return RefreshIndicator(
+      onRefresh: provider.refresh,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+        children: [
+          _OverviewCard(data: data),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<bool>(
+              showSelectedIcon: false,
+              segments: [
+                ButtonSegment(
+                  value: true,
+                  icon: const Icon(Icons.check_circle_outline_rounded),
+                  label: Text('Položeni · ${data.passedCount}'),
+                ),
+                ButtonSegment(
+                  value: false,
+                  icon: const Icon(Icons.pending_outlined),
+                  label: Text('Nepoloženi · ${data.pendingCount}'),
+                ),
               ],
+              selected: {_showPassed},
+              onSelectionChanged: (value) =>
+                  setState(() => _showPassed = value.first),
             ),
           ),
-        ],
-        body: TabBarView(
-          children: [
-            RefreshIndicator(
-              onRefresh: provider.refresh,
-              child: data.passed.isEmpty
-                  ? const EmptyState(text: 'Nema položenih ispita.')
-                  : ListView(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      children: [
-                        for (final group in data.passed) ...[
-                          _GroupHeader(group.title),
-                          for (final exam in group.exams) _PassedTile(exam),
-                        ],
-                      ],
-                    ),
-            ),
-            RefreshIndicator(
-              onRefresh: provider.refresh,
-              child: data.pending.isEmpty
-                  ? const EmptyState(text: 'Nema nepoloženih ispita.')
-                  : ListView(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      children: [
-                        for (final group in data.pending) ...[
-                          _GroupHeader(group.title),
-                          for (final exam in group.exams) _PendingTile(exam),
-                        ],
-                      ],
-                    ),
-            ),
+          if (_showPassed) ...[
+            if (data.passed.isEmpty)
+              const _Empty(text: 'Nema položenih ispita.')
+            else
+              for (final group in data.passed)
+                _GroupCard(
+                  title: group.title,
+                  trailing: _groupAverage(group),
+                  children: [for (final exam in group.exams) _PassedTile(exam)],
+                ),
+          ] else ...[
+            if (data.pending.isEmpty)
+              const _Empty(text: 'Sve je položeno. Bravo!')
+            else
+              for (final group in data.pending)
+                _GroupCard(
+                  title: group.title,
+                  trailing: '${group.exams.length} predmeta',
+                  children: [
+                    for (final exam in group.exams) _PendingTile(exam)
+                  ],
+                ),
           ],
-        ),
+        ],
       ),
     );
   }
+
+  static String? _groupAverage(ExamGroup<PassedExam> group) {
+    final grades = group.exams.map((e) => e.grade).whereType<int>().toList();
+    if (grades.isEmpty) return null;
+    final avg = grades.reduce((a, b) => a + b) / grades.length;
+    return 'prosjek ${avg.toStringAsFixed(2)}';
+  }
 }
 
-class _StudyInfoCard extends StatelessWidget {
-  const _StudyInfoCard({required this.data});
+class _OverviewCard extends StatelessWidget {
+  const _OverviewCard({required this.data});
 
   final UspjehPageData data;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final info = data.info;
+    final onCard = scheme.onPrimaryContainer;
 
-    Widget fact(String label, String value) => SizedBox(
-          width: 150,
+    Widget stat(String value, String label) => Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(value.isEmpty ? '–' : value,
+                  style: theme.textTheme.titleLarge?.copyWith(color: onCard)),
               Text(label,
                   style: theme.textTheme.bodySmall
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-              Text(value.isEmpty ? '–' : value,
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w600)),
+                      ?.copyWith(color: onCard.withValues(alpha: 0.75))),
             ],
           ),
         );
 
     return Card(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      color: scheme.primaryContainer,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Prosječna ocjena',
-                          style: theme.textTheme.bodyMedium),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                              color: onCard.withValues(alpha: 0.8))),
                       Text(
                         info.averageGrade.isEmpty ? '–' : info.averageGrade,
-                        style: theme.textTheme.displaySmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
+                        style: theme.textTheme.displayMedium?.copyWith(
+                          color: onCard,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -1,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Chip(label: Text(info.status.isEmpty ? '–' : info.status)),
-                    Text('${data.passedCount} položeno',
-                        style: theme.textTheme.bodySmall),
-                  ],
-                ),
+                if (info.status.isNotEmpty)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: scheme.primary,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      info.status,
+                      style: theme.textTheme.labelMedium
+                          ?.copyWith(color: scheme.onPrimary),
+                    ),
+                  ),
               ],
             ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 10,
+            const SizedBox(height: 16),
+            Row(
               children: [
-                fact('Godina studija', info.yearOfStudy),
-                fact('Godina upisa', info.enrollmentYear),
-                fact('Upisani semestar',
-                    '${info.enrolledSemester} (${info.enrolledSchoolYear})'),
-                fact('Ovjereni semestar',
-                    '${info.verifiedSemester} (${info.verifiedSchoolYear})'),
-                fact('Način studiranja', info.studyMode),
-                fact('Obnavlja godinu', info.repeatingYear),
+                stat('${data.passedCount}', 'položeno'),
+                stat('${data.pendingCount}', 'preostalo'),
+                stat(info.yearOfStudy, 'godina studija'),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Divider(color: onCard.withValues(alpha: 0.15)),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 18,
+              runSpacing: 6,
+              children: [
+                _Fact(Icons.event_outlined, 'Upisan',
+                    '${info.enrolledSemester}. sem · ${info.enrolledSchoolYear}',
+                    onCard),
+                _Fact(Icons.verified_outlined, 'Ovjeren',
+                    '${info.verifiedSemester}. sem · ${info.verifiedSchoolYear}',
+                    onCard),
+                _Fact(Icons.person_outline, 'Način', info.studyMode, onCard),
               ],
             ),
           ],
@@ -174,21 +210,70 @@ class _StudyInfoCard extends StatelessWidget {
   }
 }
 
-class _GroupHeader extends StatelessWidget {
-  const _GroupHeader(this.title);
+class _Fact extends StatelessWidget {
+  const _Fact(this.icon, this.label, this.value, this.color);
 
-  final String title;
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodySmall;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 15, color: color.withValues(alpha: 0.75)),
+        const SizedBox(width: 4),
+        Text('$label: ',
+            style: style?.copyWith(color: color.withValues(alpha: 0.75))),
+        Text(value,
+            style: style?.copyWith(color: color, fontWeight: FontWeight.w600)),
+      ],
+    );
+  }
+}
+
+class _GroupCard extends StatelessWidget {
+  const _GroupCard({
+    required this.title,
+    required this.children,
+    this.trailing,
+  });
+
+  final String title;
+  final String? trailing;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-      child: Text(
-        title,
-        style: Theme.of(context)
-            .textTheme
-            .titleSmall
-            ?.copyWith(color: Theme.of(context).colorScheme.primary),
+      padding: const EdgeInsets.only(top: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionHeader(
+            title,
+            padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+            trailing: trailing == null
+                ? null
+                : Text(trailing!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant)),
+          ),
+          Card(
+            child: Column(
+              children: [
+                for (var i = 0; i < children.length; i++) ...[
+                  if (i > 0) const Divider(indent: 68),
+                  children[i],
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -202,22 +287,40 @@ class _PassedTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final grade = exam.grade;
+
+    // Higher grades get the stronger accent.
+    final (Color bg, Color fg) = switch (grade) {
+      10 => (scheme.primary, scheme.onPrimary),
+      9 => (scheme.primaryContainer, scheme.onPrimaryContainer),
+      8 || 7 => (scheme.secondaryContainer, scheme.onSecondaryContainer),
+      _ => (scheme.surfaceContainerHighest, scheme.onSurfaceVariant),
+    };
+
     final subtitle = [
       if (exam.date != null) DateFormat('dd.MM.yyyy').format(exam.date!),
       if (exam.gradeDescription.isNotEmpty) exam.gradeDescription,
     ].join(' · ');
 
     return ListTile(
-      title: Text(exam.subject),
-      subtitle: subtitle.isEmpty ? null : Text(subtitle),
-      trailing: CircleAvatar(
-        backgroundColor: theme.colorScheme.primaryContainer,
-        foregroundColor: theme.colorScheme.onPrimaryContainer,
+      contentPadding: const EdgeInsets.fromLTRB(14, 4, 16, 4),
+      leading: Container(
+        width: 40,
+        height: 40,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(AppRadius.small + 2),
+        ),
         child: Text(
-          exam.grade?.toString() ?? '–',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          grade?.toString() ?? '–',
+          style: theme.textTheme.titleMedium
+              ?.copyWith(color: fg, fontWeight: FontWeight.w700),
         ),
       ),
+      title: Text(exam.subject),
+      subtitle: subtitle.isEmpty ? null : Text(subtitle),
     );
   }
 }
@@ -229,6 +332,10 @@ class _PendingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final status = StatusColors.of(context);
+    final color = exam.requirementMet ? status.good : theme.colorScheme.outline;
+
     final details = [
       exam.requirementMet ? 'Uslov ispunjen' : 'Uslov nije ispunjen',
       if (exam.requirementDate.isNotEmpty) exam.requirementDate,
@@ -236,12 +343,38 @@ class _PendingTile extends StatelessWidget {
     ].join(' · ');
 
     return ListTile(
-      leading: Icon(
-        exam.requirementMet ? Icons.check_circle : Icons.radio_button_unchecked,
-        color: exam.requirementMet ? Colors.green : null,
+      contentPadding: const EdgeInsets.fromLTRB(14, 4, 16, 4),
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(AppRadius.small + 2),
+        ),
+        child: Icon(
+          exam.requirementMet
+              ? Icons.task_alt_rounded
+              : Icons.hourglass_empty_rounded,
+          size: 20,
+          color: color,
+        ),
       ),
       title: Text(exam.subject),
       subtitle: Text(details),
+    );
+  }
+}
+
+class _Empty extends StatelessWidget {
+  const _Empty({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 240,
+      child: EmptyState(text: text, icon: Icons.emoji_events_outlined),
     );
   }
 }

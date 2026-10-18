@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Themed text field used on the login screen.
 class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;
@@ -48,18 +49,19 @@ class _CustomTextFieldState extends State<CustomTextField> {
         widget.isPassword ? AutofillHints.password : AutofillHints.username,
       ],
       onSubmitted: widget.onSubmitted,
-      style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: widget.labelText,
-        labelStyle: const TextStyle(color: Colors.white70),
         hintText: widget.hintText,
-        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
-        prefixIcon: Icon(widget.prefixIcon, color: Colors.white70),
+        prefixIcon: Icon(widget.prefixIcon),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         suffixIcon: widget.isPassword
             ? IconButton(
+                tooltip: _obscurePassword ? 'Prikaži šifru' : 'Sakrij šifru',
                 icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.white70,
+                  _obscurePassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
                 ),
                 onPressed: () {
                   setState(() {
@@ -68,20 +70,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 },
               )
             : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.white30),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.white30),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.white, width: 2),
-        ),
-        filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.1),
       ),
     );
   }

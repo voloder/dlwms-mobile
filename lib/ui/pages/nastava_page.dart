@@ -1,3 +1,4 @@
+import 'package:dlwms_mobile/models/nastava.dart';
 import 'package:dlwms_mobile/provider/nastava_provider.dart';
 import 'package:dlwms_mobile/ui/widgets/common.dart';
 import 'package:dlwms_mobile/ui/widgets/notification_card.dart';
@@ -50,16 +51,14 @@ class _NastavaView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
           child: Row(
             children: [
               SizedBox(
-                width: 96,
+                width: 104,
                 child: DlwmsDropdown(
                   label: 'Godina',
                   options: provider.yearOptions,
@@ -68,7 +67,7 @@ class _NastavaView extends StatelessWidget {
                   onChanged: provider.setYear,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: DlwmsDropdown(
                   label: 'Predmet',
@@ -81,21 +80,25 @@ class _NastavaView extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(
-          height: 3,
-          child: provider.isBusy ? const LinearProgressIndicator() : null,
-        ),
+        BusyBar(busy: provider.isBusy),
         Expanded(
           child: RefreshIndicator(
             onRefresh: provider.refresh,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(
                   parent: BouncingScrollPhysics()),
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.only(bottom: 24),
               children: [
-                const _SectionHeader('Obavijesti iz predmeta'),
+                SectionHeader(
+                  'Obavijesti iz predmeta',
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                  trailing: _Count(provider.notifications.length),
+                ),
                 if (provider.notifications.isEmpty)
-                  const _Hint('Nema obavijesti za ovaj predmet.')
+                  const _Hint(
+                    icon: Icons.notifications_none_rounded,
+                    text: 'Nema obavijesti za ovaj predmet.',
+                  )
                 else
                   for (final notification in provider.notifications)
                     NotificationCard(
@@ -106,39 +109,30 @@ class _NastavaView extends StatelessWidget {
                           : () => context.push('/home/obavijest',
                               extra: notification),
                     ),
-                const _SectionHeader('Novi dokumenti iz predmeta'),
+                SectionHeader(
+                  'Novi dokumenti',
+                  trailing: _Count(provider.materials.length),
+                ),
                 if (provider.materials.isEmpty)
-                  const _Hint('Nema novih dokumenata.')
+                  const _Hint(
+                    icon: Icons.folder_off_outlined,
+                    text: 'Nema novih dokumenata.',
+                  )
                 else
-                  Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      children: [
-                        for (final material in provider.materials)
-                          ListTile(
-                            leading: Icon(iconForFileType(material.fileType)),
-                            title: Text(material.title),
-                            subtitle: material.date == null
-                                ? null
-                                : Text(DateFormat('dd.MM.yyyy HH:mm')
-                                    .format(material.date!)),
-                            trailing: provider.downloadingTarget ==
-                                    material.postBackTarget
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  )
-                                : Icon(Icons.download,
-                                    color: theme.colorScheme.primary),
-                            onTap: provider.downloadingTarget != null
-                                ? null
-                                : () => downloadAndOpen(
-                                    context, () => provider.download(material)),
-                          ),
-                      ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Card(
+                      child: Column(
+                        children: [
+                          for (var i = 0; i < provider.materials.length; i++) ...[
+                            if (i > 0) const Divider(indent: 72),
+                            _MaterialTile(
+                              material: provider.materials[i],
+                              provider: provider,
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
               ],
@@ -150,35 +144,82 @@ class _NastavaView extends StatelessWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.text);
+class _MaterialTile extends StatelessWidget {
+  const _MaterialTile({required this.material, required this.provider});
 
-  final String text;
+  final DlwmsMaterial material;
+  final NastavaProvider provider;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
+    final downloading = provider.downloadingTarget == material.postBackTarget;
+    return ListTile(
+      contentPadding: const EdgeInsets.fromLTRB(14, 6, 10, 6),
+      leading: FileTypeBadge(type: material.fileType),
+      title: Text(material.title, maxLines: 2, overflow: TextOverflow.ellipsis),
+      subtitle: material.date == null
+          ? null
+          : Text(DateFormat('dd.MM.yyyy · HH:mm').format(material.date!)),
+      trailing: downloading
+          ? const SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Icon(Icons.download_rounded,
+              color: Theme.of(context).colorScheme.primary),
+      onTap: provider.downloadingTarget != null
+          ? null
+          : () => downloadAndOpen(context, () => provider.download(material)),
+    );
+  }
+}
+
+class _Count extends StatelessWidget {
+  const _Count(this.count);
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(10),
       ),
+      child: Text('$count',
+          style: Theme.of(context)
+              .textTheme
+              .labelMedium
+              ?.copyWith(color: scheme.onSurfaceVariant)),
     );
   }
 }
 
 class _Hint extends StatelessWidget {
-  const _Hint(this.text);
+  const _Hint({required this.icon, required this.text});
 
+  final IconData icon;
   final String text;
 
   @override
   Widget build(BuildContext context) {
+    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: muted),
+          const SizedBox(width: 10),
+          Text(text,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: muted)),
+        ],
+      ),
     );
   }
 }

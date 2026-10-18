@@ -4,6 +4,7 @@ import 'package:dlwms_mobile/ui/pages/home_page.dart';
 import 'package:dlwms_mobile/ui/pages/loading_page.dart';
 import 'package:dlwms_mobile/ui/pages/login_page.dart';
 import 'package:dlwms_mobile/ui/pages/notification_detail_page.dart';
+import 'package:dlwms_mobile/ui/pages/settings_page.dart';
 import 'package:go_router/go_router.dart';
 
 GoRouter createRouter(AuthProvider authProvider) => GoRouter(
@@ -33,6 +34,10 @@ GoRouter createRouter(AuthProvider authProvider) => GoRouter(
           path: '/home',
           builder: (context, state) => const HomePage(),
           routes: [
+            GoRoute(
+              path: 'postavke',
+              builder: (context, state) => const SettingsPage(),
+            ),
             GoRoute(
               path: 'obavijest',
               redirect: (context, state) =>

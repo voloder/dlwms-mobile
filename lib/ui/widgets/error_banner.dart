@@ -1,3 +1,4 @@
+import 'package:dlwms_mobile/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class ErrorBanner extends StatelessWidget {
@@ -12,26 +13,30 @@ class ErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
       decoration: BoxDecoration(
-        color: Colors.red.shade300.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red.shade300),
+        color: scheme.errorContainer,
+        borderRadius: BorderRadius.circular(AppRadius.small + 4),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: Colors.white70),
+          Icon(Icons.error_outline_rounded, color: scheme.onErrorContainer),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: Colors.white),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: scheme.onErrorContainer),
             ),
           ),
           if (onDismiss != null)
             IconButton(
-              icon: const Icon(Icons.close, color: Colors.white70),
+              icon: Icon(Icons.close, color: scheme.onErrorContainer),
               onPressed: onDismiss,
             ),
         ],
@@ -39,4 +44,3 @@ class ErrorBanner extends StatelessWidget {
     );
   }
 }
-
