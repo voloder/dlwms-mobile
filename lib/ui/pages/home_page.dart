@@ -1,7 +1,8 @@
+import 'package:dlwms_mobile/services/notification_target.dart';
 import 'package:dlwms_mobile/ui/pages/dokumenti_page.dart';
+import 'package:dlwms_mobile/ui/pages/ispiti_page.dart';
 import 'package:dlwms_mobile/ui/pages/nastava_page.dart';
 import 'package:dlwms_mobile/ui/pages/pocetna_page.dart';
-import 'package:dlwms_mobile/ui/pages/prisustva_page.dart';
 import 'package:dlwms_mobile/ui/pages/uspjeh_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -15,10 +16,14 @@ class _Destination {
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, this.initialIndex = 2});
+  const HomePage({super.key, this.tab, this.request});
 
-  /// Tab shown first (2 = Početna).
-  final int initialIndex;
+  /// Tab to show (e.g. after tapping a notification); Početna by default.
+  final AppTab? tab;
+
+  /// Changes with every navigation request, so asking for the same tab
+  /// twice still switches back to it.
+  final String? request;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -27,14 +32,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  late int _selectedIndex = widget.initialIndex;
+  late int _selectedIndex = (widget.tab ?? AppTab.pocetna).index;
 
+  // Same order as [AppTab].
   static const List<_Destination> _destinations = [
     _Destination('Nastava', Icons.school_outlined, Icons.school),
     _Destination('Dokumenti', Icons.folder_outlined, Icons.folder),
     _Destination('Početna', Icons.home_outlined, Icons.home),
-    _Destination('Prisustva', Icons.event_available_outlined,
-        Icons.event_available),
+    _Destination('Ispiti', Icons.event_note_outlined, Icons.event_note),
     _Destination('Uspjeh', Icons.workspace_premium_outlined,
         Icons.workspace_premium),
   ];
@@ -58,9 +63,31 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
+  void didUpdateWidget(HomePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final tab = widget.tab;
+    if (tab != null &&
+        (tab != oldWidget.tab || widget.request != oldWidget.request)) {
+      _goTo(tab.index);
+    }
+  }
+
+  @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _goTo(int index) {
+    if (index == _selectedIndex) return;
+    _tabController.animateTo(
+      index,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+    );
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   /// Title that slides and fades between tabs as the user swipes.
@@ -114,6 +141,12 @@ class _HomePageState extends State<HomePage>
         titleSpacing: 20,
         title: _buildAnimatedAppBarTitle(context),
         actions: [
+          if (_selectedIndex == AppTab.pocetna.index)
+            IconButton(
+              tooltip: 'Pretraži obavijesti',
+              icon: const Icon(Icons.search_rounded),
+              onPressed: () => context.push('/home/pretraga'),
+            ),
           IconButton(
             tooltip: 'Postavke',
             icon: const Icon(Icons.settings_outlined),
@@ -128,23 +161,13 @@ class _HomePageState extends State<HomePage>
           NastavaPage(),
           DokumentiPage(),
           PocetnaPage(),
-          PrisustvaPage(),
+          IspitiPage(),
           UspjehPage(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          if (index == _selectedIndex) return;
-          _tabController.animateTo(
-            index,
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-          );
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+        onDestinationSelected: _goTo,
         destinations: [
           for (final destination in _destinations)
             NavigationDestination(

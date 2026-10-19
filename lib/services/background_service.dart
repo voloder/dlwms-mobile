@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:dlwms_mobile/services/check_status.dart';
 import 'package:dlwms_mobile/services/dlwms_client.dart';
 import 'package:dlwms_mobile/services/local_notifications.dart';
-import 'package:dlwms_mobile/services/obavijesti_watcher.dart';
+import 'package:dlwms_mobile/services/watchers.dart';
 import 'package:dlwms_mobile/util/credentials.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -29,8 +29,8 @@ void obavijestiServiceCallback() {
 }
 
 /// Runs inside the Android foreground service: every 300 s it logs in (only
-/// when the session has expired), reads the home page and shows a local
-/// notification for every announcement that wasn't there before.
+/// when the session has expired) and runs [DlwmsWatchers.runChecks], which
+/// alerts about new announcements, documents, grades, tests and exam terms.
 class ObavijestiTaskHandler extends TaskHandler {
   DlwmsClient? _client;
   bool _checking = false;
@@ -63,7 +63,7 @@ class ObavijestiTaskHandler extends TaskHandler {
       prefs = await SharedPreferences.getInstance();
       await prefs.reload();
 
-      final credentials = Credentials.read(prefs);
+      final credentials = await CredentialStore.read(prefs);
       if (credentials == null) {
         await CheckStatus.save(prefs, CheckResult.authFailed);
         return;
@@ -72,8 +72,8 @@ class ObavijestiTaskHandler extends TaskHandler {
       final client = _client ??= DlwmsClient();
       client.setCredentials(credentials.username, credentials.password);
 
-      final alerted = await ObavijestiWatcher.checkForNew(client, prefs);
-      await CheckStatus.save(prefs, CheckResult.ok, newCount: alerted.length);
+      final shown = await DlwmsWatchers.runChecks(client, prefs);
+      await CheckStatus.save(prefs, CheckResult.ok, newCount: shown);
     } on DlwmsAuthException {
       if (prefs != null) await CheckStatus.save(prefs, CheckResult.authFailed);
     } catch (e) {

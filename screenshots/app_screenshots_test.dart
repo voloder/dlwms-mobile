@@ -9,9 +9,11 @@
 import 'dart:io';
 
 import 'package:dlwms_mobile/app.dart';
+import 'package:dlwms_mobile/services/calendar_service.dart';
 import 'package:dlwms_mobile/services/dlwms_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -97,6 +99,11 @@ DlwmsClient _fixtureClient() {
       if (path.endsWith('/pretraga.aspx')) return page(dokumenti);
       if (path.endsWith('/prisustvo.aspx')) return page(prisustvoPage);
       if (path.endsWith('/uspjeh.aspx')) return page(uspjehPage);
+      if (path.endsWith('/rokovi/index.aspx')) return page(rokoviPage());
+      if (path.endsWith('/eusasstudenthome.aspx')) return page(testsPage());
+      if (path.endsWith('/arhiva.aspx')) {
+        return page(request.method == 'POST' ? arhivaResults : arhivaForm);
+      }
       return http.Response('not found', 404);
     }),
   );
@@ -130,6 +137,10 @@ Future<void> _shot(WidgetTester tester, String name) async {
 
 void main() {
   setUpAll(_loadFonts);
+  setUp(() {
+    FlutterSecureStorage.setMockInitialValues({});
+    CalendarService.debugSupported = true;
+  });
 
   const loggedIn = <String, Object>{
     'username': 'IB230042',
@@ -156,19 +167,47 @@ void main() {
       }
 
       await openTab('Nastava', '${mode}_2_nastava');
+      await tester.tap(find.text('Prisustvo'));
+      await _settle(tester);
+      await _shot(tester, '${mode}_4_prisustvo');
       await openTab('Dokumenti', '${mode}_3_dokumenti');
-      await openTab('Prisustva', '${mode}_4_prisustva');
-      await openTab('Uspjeh', '${mode}_5_uspjeh');
+      await openTab('Ispiti', '${mode}_5_ispiti');
+      await openTab('Uspjeh', '${mode}_6_uspjeh');
 
       await tester.tap(find.byTooltip('Postavke'));
       await _settle(tester);
-      await _shot(tester, '${mode}_6_postavke');
+      await _shot(tester, '${mode}_7_postavke');
+      await tester.scrollUntilVisible(
+        find.text('Javi mi kada stigne'),
+        400,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.drag(find.byType(Scrollable).last, const Offset(0, -500));
+      await _settle(tester, 4);
+      await _shot(tester, '${mode}_8_postavke_obavijesti');
 
       // Unmount so provider timers are cancelled before the test ends.
       await tester.pumpWidget(const SizedBox());
       await _settle(tester, 2);
     });
   }
+
+  testWidgets('archive search', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2340);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await _pumpApp(tester, prefs: {...loggedIn, 'theme_mode': 'light'});
+    await tester.tap(find.byTooltip('Pretraži obavijesti'));
+    await _settle(tester);
+    await tester.enterText(find.byType(TextField).first, 'ispit');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await _settle(tester);
+    await _shot(tester, 'light_9_pretraga');
+
+    await tester.pumpWidget(const SizedBox());
+    await _settle(tester, 2);
+  });
 
   testWidgets('login and custom colours', (tester) async {
     tester.view.physicalSize = const Size(1080, 2340);

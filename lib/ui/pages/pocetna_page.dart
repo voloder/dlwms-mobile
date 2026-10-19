@@ -1,6 +1,7 @@
 import 'package:dlwms_mobile/provider/notification_provider.dart';
 import 'package:dlwms_mobile/ui/widgets/common.dart';
 import 'package:dlwms_mobile/ui/widgets/notification_card.dart';
+import 'package:dlwms_mobile/ui/pages/notification_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -50,21 +51,36 @@ class _PocetnaPageState extends State<PocetnaPage>
                             ? 'Nema relevantnih obavijesti.'
                             : 'Nema obavijesti.',
                       )
-                    : ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(
-                            parent: BouncingScrollPhysics()),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: notifications.length,
-                        itemBuilder: (context, index) {
-                          final notification = notifications[index];
-                          return NotificationCard(
-                            notification: notification,
-                            onTap: notification.url == null
-                                ? null
-                                : () => context.push('/home/obavijest',
-                                    extra: notification),
-                          );
+                    : NotificationListener<ScrollNotification>(
+                        // Loads the next DLWMS page when the end is near.
+                        onNotification: (scroll) {
+                          if (scroll.metrics.extentAfter < 400 &&
+                              provider.hasMore &&
+                              !provider.loadingMore &&
+                              provider.loadMoreError == null) {
+                            provider.loadMore();
+                          }
+                          return false;
                         },
+                        child: ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics()),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: notifications.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == notifications.length) {
+                              return _ListFooter(provider: provider);
+                            }
+                            final notification = notifications[index];
+                            return NotificationCard(
+                              notification: notification,
+                              onTap: notification.url == null
+                                  ? null
+                                  : () =>
+                                      openAnnouncement(context, notification),
+                            );
+                          },
+                        ),
                       ),
               ),
             ),
@@ -110,6 +126,52 @@ class _FilterBanner extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// End of the list: loading indicator, retry, or a pointer to search.
+class _ListFooter extends StatelessWidget {
+  const _ListFooter({required this.provider});
+
+  final NotificationProvider provider;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
+
+    final Widget child;
+    if (provider.loadingMore) {
+      child = const SizedBox(
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(strokeWidth: 2.5),
+      );
+    } else if (provider.loadMoreError != null) {
+      child = OutlinedButton.icon(
+        onPressed: provider.loadMore,
+        icon: const Icon(Icons.refresh_rounded),
+        label: const Text('Pokušaj ponovo'),
+      );
+    } else if (provider.hasMore) {
+      child = OutlinedButton.icon(
+        onPressed: provider.loadMore,
+        icon: const Icon(Icons.expand_more_rounded),
+        label: const Text('Učitaj starije'),
+      );
+    } else {
+      child = TextButton.icon(
+        onPressed: () => context.push('/home/pretraga'),
+        icon: Icon(Icons.search_rounded, size: 18, color: muted),
+        label: Text('Starije obavijesti pronađi u pretrazi',
+            style: TextStyle(color: muted)),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      child: Center(child: child),
     );
   }
 }

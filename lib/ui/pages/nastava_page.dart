@@ -1,12 +1,17 @@
 import 'package:dlwms_mobile/models/nastava.dart';
 import 'package:dlwms_mobile/provider/nastava_provider.dart';
+import 'package:dlwms_mobile/ui/pages/prisustva_page.dart';
 import 'package:dlwms_mobile/ui/widgets/common.dart';
 import 'package:dlwms_mobile/ui/widgets/notification_card.dart';
+import 'package:dlwms_mobile/ui/pages/notification_detail_page.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+enum _NastavaSection { predmeti, prisustvo }
+
+/// "Nastava": per-subject announcements and materials, and attendance
+/// (Prisustvo), switched with a segmented control at the top.
 class NastavaPage extends StatefulWidget {
   const NastavaPage({super.key});
 
@@ -16,9 +21,69 @@ class NastavaPage extends StatefulWidget {
 
 class _NastavaPageState extends State<NastavaPage>
     with AutomaticKeepAliveClientMixin {
+  _NastavaSection _section = _NastavaSection.predmeti;
+
+  /// Attendance is only loaded once the user opens it.
+  bool _attendanceOpened = false;
+
   @override
   bool get wantKeepAlive => true;
 
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+          child: SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<_NastavaSection>(
+              showSelectedIcon: false,
+              segments: const [
+                ButtonSegment(
+                  value: _NastavaSection.predmeti,
+                  icon: Icon(Icons.menu_book_outlined),
+                  label: Text('Predmeti'),
+                ),
+                ButtonSegment(
+                  value: _NastavaSection.prisustvo,
+                  icon: Icon(Icons.event_available_outlined),
+                  label: Text('Prisustvo'),
+                ),
+              ],
+              selected: {_section},
+              onSelectionChanged: (value) => setState(() {
+                _section = value.first;
+                if (_section == _NastavaSection.prisustvo) {
+                  _attendanceOpened = true;
+                }
+              }),
+            ),
+          ),
+        ),
+        Expanded(
+          child: IndexedStack(
+            index: _section.index,
+            children: [
+              const _PredmetiSection(),
+              _attendanceOpened ? const PrisustvaPage() : const SizedBox(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PredmetiSection extends StatefulWidget {
+  const _PredmetiSection();
+
+  @override
+  State<_PredmetiSection> createState() => _PredmetiSectionState();
+}
+
+class _PredmetiSectionState extends State<_PredmetiSection> {
   @override
   void initState() {
     super.initState();
@@ -29,7 +94,6 @@ class _NastavaPageState extends State<NastavaPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     final provider = context.watch<NastavaProvider>();
 
     return switch (provider.state) {
@@ -54,7 +118,7 @@ class _NastavaView extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
           child: Row(
             children: [
               SizedBox(
@@ -106,8 +170,7 @@ class _NastavaView extends StatelessWidget {
                       showSubject: false,
                       onTap: notification.url == null
                           ? null
-                          : () => context.push('/home/obavijest',
-                              extra: notification),
+                          : () => openAnnouncement(context, notification),
                     ),
                 SectionHeader(
                   'Novi dokumenti',

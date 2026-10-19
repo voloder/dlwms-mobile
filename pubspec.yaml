@@ -16,13 +16,16 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.2.0-alpha.1+2
+version: 0.3.0+3
 
 environment:
   sdk: ^3.6.0
 
 dependencies:
   flutter:
+    sdk: flutter
+  # Bosnian texts in built-in widgets (date picker, dialogs).
+  flutter_localizations:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
@@ -38,6 +41,11 @@ dependencies:
   # that require Flutter 3.38+/AGP 9 so the current Gradle setup keeps working.
   flutter_foreground_task: ^9.2.2
   flutter_local_notifications: ^20.1.0
+  # Time zones for scheduled exam reminders (already used by the plugin).
+  timezone: ^0.10.0
+
+  # The DLWMS password, encrypted with a key from the Android Keystore.
+  flutter_secure_storage: ^11.2.0
 
   # Opening downloaded documents and links inside announcements.
   path_provider: ^2.1.5

@@ -3,15 +3,29 @@ import 'package:dlwms_mobile/provider/notification_provider.dart';
 import 'package:dlwms_mobile/ui/widgets/common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Full text of one announcement (`opsirnije.aspx`).
-class NotificationDetailPage extends StatefulWidget {
-  const NotificationDetailPage({super.key, required this.notification});
+/// Opens the full text of [notification] (cards in lists).
+void openAnnouncement(BuildContext context, DlwmsNotification notification) {
+  final url = notification.url;
+  if (url == null) return;
+  context.push(
+    Uri(path: '/home/obavijest', queryParameters: {'url': url}).toString(),
+    extra: notification,
+  );
+}
 
-  final DlwmsNotification notification;
+/// Full text of one announcement (`opsirnije.aspx`). Opened from a list
+/// (with the list item as a fallback while loading) or from a notification,
+/// where only the [url] is known.
+class NotificationDetailPage extends StatefulWidget {
+  const NotificationDetailPage({super.key, required this.url, this.notification});
+
+  final String url;
+  final DlwmsNotification? notification;
 
   @override
   State<NotificationDetailPage> createState() => _NotificationDetailPageState();
@@ -27,12 +41,22 @@ class _NotificationDetailPageState extends State<NotificationDetailPage> {
   }
 
   void _load() {
-    _detail = context.read<NotificationProvider>().fetchDetail(widget.notification);
+    _detail = context.read<NotificationProvider>().fetchDetail(widget.url);
   }
 
   @override
   Widget build(BuildContext context) {
-    final n = widget.notification;
+    final n = widget.notification ??
+        DlwmsNotification(
+          id: widget.url,
+          title: '',
+          content: '',
+          dateTime: DateTime.now(),
+          subject: '',
+          author: '',
+          authorEmail: '',
+          url: widget.url,
+        );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Obavijest')),

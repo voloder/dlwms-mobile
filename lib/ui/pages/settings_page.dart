@@ -3,6 +3,7 @@ import 'package:dlwms_mobile/provider/notification_provider.dart';
 import 'package:dlwms_mobile/provider/theme_provider.dart';
 import 'package:dlwms_mobile/services/background_service.dart';
 import 'package:dlwms_mobile/services/check_status.dart';
+import 'package:dlwms_mobile/services/watchers.dart';
 import 'package:dlwms_mobile/theme/app_theme.dart';
 import 'package:dlwms_mobile/ui/widgets/common.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,8 @@ class SettingsPage extends StatelessWidget {
           _AppearanceCard(),
           SectionHeader('Obavijesti'),
           _NotificationsCard(),
+          SectionHeader('Javi mi kada stigne'),
+          _AlertsCard(),
           SizedBox(height: 24),
           _AboutFooter(),
         ],
@@ -437,6 +440,56 @@ class _ColorPickerDialogState extends State<_ColorPickerDialog> {
   }
 }
 
+/// One switch per kind of alert (announcements, grades, tests, ...).
+class _AlertsCard extends StatefulWidget {
+  const _AlertsCard();
+
+  @override
+  State<_AlertsCard> createState() => _AlertsCardState();
+}
+
+class _AlertsCardState extends State<_AlertsCard> {
+  static const Map<AlertKind, IconData> _icons = {
+    AlertKind.obavijesti: Icons.campaign_outlined,
+    AlertKind.ocjene: Icons.workspace_premium_outlined,
+    AlertKind.testovi: Icons.quiz_outlined,
+    AlertKind.rokovi: Icons.event_note_outlined,
+    AlertKind.dokumenti: Icons.description_outlined,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final prefs = context.read<AuthProvider>().prefs;
+    final theme = Theme.of(context);
+
+    return _Group(
+      children: [
+        for (final kind in AlertKind.values)
+          SwitchListTile(
+            contentPadding: const EdgeInsets.fromLTRB(16, 2, 12, 2),
+            secondary: Icon(_icons[kind]),
+            title: Text(kind.title),
+            subtitle: Text(kind.description),
+            value: kind.isEnabled(prefs),
+            onChanged: (value) async {
+              await kind.setEnabled(prefs, value);
+              if (mounted) setState(() {});
+            },
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
+          child: Text(
+            'Obavijesti i dokumenti se provjeravaju svakih 5 minuta, a '
+            'ocjene, testovi i rokovi svakih 15 minuta.',
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.outline),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _NotificationsCard extends StatelessWidget {
   const _NotificationsCard();
 
@@ -515,7 +568,7 @@ class _NotificationsCard extends StatelessWidget {
     final result = switch (status.result) {
       CheckResult.ok => status.newCount == 0
           ? 'nema novih obavijesti'
-          : 'novih obavijesti: ${status.newCount}',
+          : 'novih obavještenja: ${status.newCount}',
       CheckResult.authFailed => 'prijava nije uspjela, otvorite aplikaciju',
       CheckResult.error => 'nije uspjela, pokušava ponovo za 5 minuta',
     };

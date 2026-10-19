@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:dlwms_mobile/provider/auth_provider.dart';
 import 'package:dlwms_mobile/provider/document_provider.dart';
+import 'package:dlwms_mobile/provider/ispiti_provider.dart';
 import 'package:dlwms_mobile/provider/nastava_provider.dart';
 import 'package:dlwms_mobile/provider/notification_provider.dart';
 import 'package:dlwms_mobile/provider/prisustvo_provider.dart';
@@ -7,9 +10,12 @@ import 'package:dlwms_mobile/provider/theme_provider.dart';
 import 'package:dlwms_mobile/provider/uspjeh_provider.dart';
 import 'package:dlwms_mobile/router.dart';
 import 'package:dlwms_mobile/services/dlwms_client.dart';
+import 'package:dlwms_mobile/services/local_notifications.dart';
+import 'package:dlwms_mobile/services/notification_target.dart';
 import 'package:dlwms_mobile/theme/app_theme.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,6 +39,9 @@ Widget buildApp(SharedPreferences prefs, {DlwmsClient? client}) {
       ChangeNotifierProxyProvider<AuthProvider, PrisustvoProvider>(
           create: (_) => PrisustvoProvider(),
           update: (_, auth, provider) => provider!..update(auth)),
+      ChangeNotifierProxyProvider<AuthProvider, IspitiProvider>(
+          create: (_) => IspitiProvider(),
+          update: (_, auth, provider) => provider!..update(auth)),
       ChangeNotifierProxyProvider<AuthProvider, UspjehProvider>(
           create: (_) => UspjehProvider(),
           update: (_, auth, provider) => provider!..update(auth)),
@@ -51,11 +60,56 @@ class DlwmsMobile extends StatefulWidget {
 class _DlwmsMobileState extends State<DlwmsMobile> {
   // Created once; GoRouter re-runs its redirect when AuthProvider changes.
   late final GoRouter _router = createRouter(context.read<AuthProvider>());
+  late final AuthProvider _auth = context.read<AuthProvider>();
+
+  StreamSubscription<NotificationTarget>? _taps;
+
+  /// Notification tapped before the user was logged in; opened afterwards.
+  NotificationTarget? _pending;
+
+  @override
+  void initState() {
+    super.initState();
+    _taps = LocalNotifications.taps.listen(_open);
+    _auth.addListener(_openPending);
+    LocalNotifications.launchTarget().then((target) {
+      if (target != null && mounted) _open(target);
+    });
+  }
 
   @override
   void dispose() {
+    _taps?.cancel();
+    _auth.removeListener(_openPending);
     _router.dispose();
     super.dispose();
+  }
+
+  void _open(NotificationTarget target) {
+    _pending = target;
+    _openPending();
+  }
+
+  void _openPending() {
+    final target = _pending;
+    if (target == null || _auth.state != AuthProviderState.authenticated) {
+      return;
+    }
+    _pending = null;
+
+    // Let the login redirect to /home finish first.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (target.announcementUrl != null) {
+        _router.go(target.location);
+      } else {
+        final uri = Uri.parse(target.location);
+        _router.go(uri.replace(queryParameters: {
+          ...uri.queryParameters,
+          'n': '${DateTime.now().millisecondsSinceEpoch}',
+        }).toString());
+      }
+    });
   }
 
   @override
@@ -72,6 +126,10 @@ class _DlwmsMobileState extends State<DlwmsMobile> {
           title: 'DLWMS Mobile',
           debugShowCheckedModeBanner: false,
           themeMode: theme.themeMode,
+          // Bosnian texts in built-in widgets (date picker, dialogs, ...).
+          locale: const Locale('bs'),
+          supportedLocales: const [Locale('bs'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           theme: buildAppTheme(theme.schemeFor(Brightness.light)),
           darkTheme: buildAppTheme(theme.schemeFor(Brightness.dark)),
           routerConfig: _router,

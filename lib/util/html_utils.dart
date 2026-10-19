@@ -122,3 +122,42 @@ String fileTypeFromIcon(String? iconSrc) {
   }
   return 'file';
 }
+
+final RegExp _pagerLabel = RegExp(r'^(\d+|\.\.\.)$');
+
+/// Reads an ASP.NET grid pager ("1 2 3 … 10 …") inside [table]. Only links
+/// whose postback target mentions [gridId] are used, so links inside the
+/// grid's rows are ignored. Returns an empty list for a single page.
+List<DlwmsPagerLink> parseGridPager(dom.Element? table, String gridId) {
+  if (table == null) return const [];
+
+  for (final row in table.querySelectorAll('tr').reversed) {
+    final links = <DlwmsPagerLink>[];
+    var hasPageLink = false;
+
+    for (final element in row.querySelectorAll('span, a')) {
+      final label = element.text.trim();
+      if (!_pagerLabel.hasMatch(label)) continue;
+
+      if (element.localName == 'span') {
+        links.add(DlwmsPagerLink(label: label));
+      } else {
+        final target = postBackTarget(element.attributes['href']);
+        if (target != null && target.contains(gridId)) {
+          links.add(DlwmsPagerLink(label: label, target: target));
+          hasPageLink = true;
+        }
+      }
+    }
+
+    if (hasPageLink && links.any((link) => link.isCurrent)) return links;
+  }
+  return const [];
+}
+
+/// Target of the pager link right after the current page, if any.
+String? nextPageTarget(List<DlwmsPagerLink> links) {
+  final index = links.indexWhere((link) => link.isCurrent);
+  if (index < 0 || index + 1 >= links.length) return null;
+  return links[index + 1].target;
+}

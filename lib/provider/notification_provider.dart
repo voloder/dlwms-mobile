@@ -6,8 +6,9 @@ import 'package:dlwms_mobile/services/background_service.dart';
 import 'package:dlwms_mobile/services/check_status.dart';
 import 'package:dlwms_mobile/services/dlwms_client.dart';
 import 'package:dlwms_mobile/services/notification_service.dart';
-import 'package:dlwms_mobile/services/obavijesti_watcher.dart';
 import 'package:dlwms_mobile/services/relevant_subjects.dart';
+import 'package:dlwms_mobile/services/watchers.dart';
+import 'package:dlwms_mobile/util/html_utils.dart';
 import 'package:flutter/widgets.dart';
 
 enum NotificationProviderState { loading, loaded, error }
@@ -50,6 +51,8 @@ class NotificationProvider extends ChangeNotifier {
     } else {
       _stopTimer();
       _notifications = null;
+      _pagerPage = null;
+      _nextPage = null;
       _relevantSubjects = null;
       _state = NotificationProviderState.loading;
     }
@@ -144,10 +147,12 @@ class NotificationProvider extends ChangeNotifier {
       final list = NotificationService.parseNotifications(page);
 
       _notifications = list;
+      _pagerPage = page;
+      _nextPage = nextPageTarget(NotificationService.parseHomePager(page));
       _errorMessage = null;
       state = NotificationProviderState.loaded;
 
-      await _handleNewItems(auth, list);
+      await _handleNewItems(auth, page);
     } catch (e) {
       _errorMessage = e.toString();
       if (!await BackgroundService.isRunning) {
@@ -163,23 +168,70 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _handleNewItems(
-      AuthProvider auth, List<DlwmsNotification> list) async {
-    // The background service owns alerting while it runs, so it doesn't
-    // lose track of what's new.
+  /// Runs the same checks as the background service (announcements,
+  /// documents, grades, tests, exam terms) while the app is open, but only
+  /// when that service isn't running – it owns alerting otherwise.
+  Future<void> _handleNewItems(AuthProvider auth, DlwmsPage homePage) async {
     if (await BackgroundService.isRunning) return;
 
-    final fresh = await ObavijestiWatcher.detectNew(list, auth.prefs);
-    final alerted = await ObavijestiWatcher.alert(fresh, auth.client, auth.prefs);
-    await CheckStatus.save(auth.prefs, CheckResult.ok,
-        newCount: alerted.length);
+    try {
+      final shown = await DlwmsWatchers.runChecks(
+        auth.client,
+        auth.prefs,
+        homePage: homePage,
+      );
+      await CheckStatus.save(auth.prefs, CheckResult.ok, newCount: shown);
+    } catch (_) {
+      await CheckStatus.save(auth.prefs, CheckResult.error);
+    }
     notifyListeners();
   }
 
-  Future<DlwmsNotificationDetail> fetchDetail(DlwmsNotification n) async {
+  // Paging through older announcements ("Učitaj starije").
+  DlwmsPage? _pagerPage;
+  String? _nextPage;
+  bool _loadingMore = false;
+  String? _loadMoreError;
+
+  bool get hasMore => _nextPage != null;
+  bool get loadingMore => _loadingMore;
+  String? get loadMoreError => _loadMoreError;
+
+  /// Appends the next page of DLWMS announcements (10 per page).
+  Future<void> loadMore() async {
     final auth = _authProvider;
-    final url = n.url;
-    if (auth == null || url == null) {
+    final page = _pagerPage;
+    final target = _nextPage;
+    if (auth == null || page == null || target == null || _loadingMore) {
+      return;
+    }
+
+    _loadingMore = true;
+    _loadMoreError = null;
+    notifyListeners();
+    try {
+      final next = await auth.client.postBack(page, target);
+      final more = NotificationService.parseNotifications(next);
+      final known = {for (final n in _notifications ?? const []) n.id};
+      _notifications = [
+        ...?_notifications,
+        ...more.where((n) => !known.contains(n.id)),
+      ];
+      _pagerPage = next;
+      _nextPage = more.isEmpty
+          ? null
+          : nextPageTarget(NotificationService.parseHomePager(next));
+    } catch (e) {
+      _loadMoreError = e.toString();
+    } finally {
+      _loadingMore = false;
+      notifyListeners();
+    }
+  }
+
+  Future<DlwmsNotificationDetail> fetchDetail(String url) async {
+    final auth = _authProvider;
+    if (auth == null) {
       throw DlwmsNetworkException('Obavijest nema detaljan prikaz.');
     }
     final page = await auth.client.fetch(Uri.parse(url));

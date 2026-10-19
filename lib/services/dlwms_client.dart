@@ -146,6 +146,9 @@ class DlwmsClient {
       baseUrl.resolve('nastava/dokumenti/pretraga.aspx');
   static final Uri prisustvoUrl = baseUrl.resolve('nastava/prisustvo.aspx');
   static final Uri uspjehUrl = baseUrl.resolve('evaluacija/uspjeh.aspx');
+  static final Uri examTermsUrl = baseUrl.resolve('rokovi/index.aspx');
+  static final Uri testsUrl = baseUrl.resolve('EUSASStudentHome.aspx');
+  static final Uri archiveUrl = baseUrl.resolve('obavijesti/arhiva.aspx');
 
   /// FIT is option 1 in the login page's institution dropdown.
   static const String institutionFit = '1';

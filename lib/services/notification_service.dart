@@ -1,3 +1,4 @@
+import 'package:dlwms_mobile/models/document.dart';
 import 'package:dlwms_mobile/models/notification.dart';
 import 'package:dlwms_mobile/services/dlwms_client.dart';
 import 'package:dlwms_mobile/util/html_utils.dart';
@@ -5,6 +6,12 @@ import 'package:flutter/foundation.dart';
 import 'package:html/dom.dart' as dom;
 
 class NotificationService {
+  /// Pager under the home page announcements (10 per page).
+  static List<DlwmsPagerLink> parseHomePager(DlwmsPage page) => parseGridPager(
+        page.document.querySelector('#dgObavijesti'),
+        'dgObavijesti',
+      );
+
   /// Parses the `ul.newslist` announcements found on the home page
   /// (`default.aspx`) and on the per-subject Nastava page.
   ///

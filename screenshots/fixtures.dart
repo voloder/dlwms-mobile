@@ -89,3 +89,100 @@ ${_pending(4, 'Razvoj softvera II', true, '20.01.2027', '1')}
 </table></td></tr></table></div>
 </form></body></html>
 ''';
+
+String _date(DateTime d) =>
+    '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+
+String _termRow(int i, String subject, DateTime day, String time,
+        {bool registered = false}) =>
+    '<tr class="grid" valign="top"><td style="width:400px;">'
+    '<span id="lblPredmetNaziv">$subject </span></td>'
+    '<td>${_date(day)}</td><td>$time</td><td align="center">&nbsp;</td>'
+    '<td><input id="chkSelect" type="checkbox" '
+    'name="ctl00\$ContentPlaceHolder1\$gridTermini\$ctl${i.toString().padLeft(2, '0')}\$chkSelect"'
+    '${registered ? ' checked="checked"' : ''} /></td></tr>';
+
+/// Exam terms relative to today, in the structure of `rokovi/index.aspx`.
+String rokoviPage() {
+  final now = DateTime.now();
+  DateTime day(int offset) => DateTime(now.year, now.month, now.day + offset);
+  return '''
+<html><body><form method="post" action="./index.aspx">
+<input type="hidden" name="__VIEWSTATE" value="x" />
+<select name="ctl00\$ContentPlaceHolder1\$listRokovi" id="listRokovi">
+<option selected="selected" value="760">Apsolventski ispitni rokovi za oktobar 2026/27.</option>
+<option value="751">Septembarski ispitni rok 2025/26.</option>
+</select>
+<table cellspacing="5" cellpadding="2" id="gridTermini" style="width:100%;">
+<tr class="Header"><td>Naslov</td><td>Datum</td><td>Vrijeme</td><td>Zauzeto mjesta</td><td>&nbsp;</td></tr>
+${_termRow(2, 'Razvoj softvera I', day(-1), '11:00')}
+${_termRow(3, 'Modeliranje poslovnih procesa', day(1), '13:00', registered: true)}
+${_termRow(4, 'Interakcija čovjek-računar online', day(3), '17:00')}
+${_termRow(5, 'Upravljanje projektom', day(4), '11:00')}
+${_termRow(6, 'Dizajn i razvoj IOT projekata', day(5), '13:00')}
+${_termRow(7, 'Razvoj softvera II', day(7), '12:00')}
+${_termRow(8, 'Informacijska sigurnost', day(9), '10:00')}
+</table>
+<input type="submit" name="ctl00\$ContentPlaceHolder1\$bntPrijava" value="Prijavi odabrane ispite" />
+</form></body></html>
+''';
+}
+
+String _dateTime(DateTime d) =>
+    '${d.day}.${d.month}.${d.year} ${d.hour}:${d.minute.toString().padLeft(2, '0')}:00';
+
+/// Made-up tests in the structure of `EUSASStudentHome.aspx`.
+String testsPage() {
+  final now = DateTime.now();
+  final from = now.subtract(const Duration(minutes: 40));
+  final to = DateTime(now.year, now.month, now.day, now.hour + 3, 30);
+  return '''
+<html><body><form method="post" action="./EUSASStudentHome.aspx">
+<div id="currentActiveTestsBlock" style="display:block;">
+<table id="gvIndexCurrentlyActiveTests">
+<tr><th>Predmet</th><th>Naziv</th><th>Trajanje</th><th>Od</th><th>Do</th><th>&nbsp;</th></tr>
+<tr><td>Razvoj softvera I</td><td>RSI :: kolokvij</td><td>20</td><td>${_dateTime(from)}</td><td>${_dateTime(to)}</td><td></td></tr>
+</table></div>
+<div id="previousTestsBlock" style="display:block;">
+<table id="gvIndexPreviousTests">
+<tr><th>Predmet</th><th>Naziv</th><th>Datum</th><th>Uspjeh (%)</th><th>&nbsp;</th></tr>
+<tr><td>Engleski jezik III</td><td>Drugi parcijalni ispit</td><td>23.6.2026 13:32:27</td><td>88.64</td><td></td></tr>
+<tr><td>Kompjuterska grafika</td><td>Parcijalni ispit</td><td>13.4.2026 10:04:56</td><td>71.5</td><td></td></tr>
+</table></div>
+</form></body></html>
+''';
+}
+
+const arhivaForm = '''
+<html><body><form method="post" action="./arhiva.aspx">
+<input type="hidden" name="__VIEWSTATE" value="x" />
+<select name="ctl00\$ContentPlaceHolder1\$listPredmet" id="listPredmet">
+<option selected="selected" value=""></option>
+<option value="157">Razvoj softvera II</option>
+<option value="150">Razvoj softvera I</option>
+<option value="232">Kvalitet softvera</option>
+</select>
+<input name="ctl00\$ContentPlaceHolder1\$txtRijeci" type="text" id="txtRijeci" />
+<select name="ctl00\$ContentPlaceHolder1\$listOperator" id="listOperator">
+<option selected="selected" value="AND">Sve riječi (AND)</option>
+<option value="OR">Bilo koja riječ (OR)</option></select>
+<input name="ctl00\$ContentPlaceHolder1\$txtDatumOd" type="text" id="txtDatumOd" />
+<input name="ctl00\$ContentPlaceHolder1\$txtDatumDo" type="text" id="txtDatumDo" />
+<input type="submit" name="ctl00\$ContentPlaceHolder1\$btnTrazi" value="Traži" />
+</form></body></html>
+''';
+
+String _archiveRow(String date, String title) =>
+    '<tr class="grid" valign="top"><td style="width:120px;">$date</td>'
+    '<td style="width:370px;"><a id="lnkNaslov" href="opsirnije.aspx?sqs=${Uri.encodeComponent(title)}">$title</a></td></tr>';
+
+final arhivaResults = arhivaForm.replaceFirst('</form>', '''
+<table cellspacing="0" id="dgArhiva">
+${_archiveRow('18.10.2026 22:12', 'RSI :: Apsolventski ispitni termin :: 19.10.2026')}
+${_archiveRow('12.10.2026 15:32', 'Raspored apsolventskih ispitnih rokova za oktobar ak. 2026/27.')}
+${_archiveRow('09.10.2026 14:18', 'BPI :: Obavijest o priznavanju teorijskog dijela ispita')}
+${_archiveRow('30.09.2026 12:49', 'PRIII :: Rezultati ispita :: 16.09.2026')}
+${_archiveRow('28.09.2026 11:50', 'RSII :: Rezultati ispita :: 15.09.2026')}
+${_archiveRow('18.09.2026 13:48', 'BPI :: Konačne ocjene za ispitni termin 11.09.2026')}
+<tr class="pgr" align="right"><td colspan="2"><span>1</span>&nbsp;<a href="javascript:__doPostBack('ctl00\$ContentPlaceHolder1\$dgArhiva\$ctl24\$ctl01','')">2</a></td></tr>
+</table></form>''');

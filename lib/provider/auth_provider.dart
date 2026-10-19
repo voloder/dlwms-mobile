@@ -1,9 +1,10 @@
 import 'package:dlwms_mobile/services/background_service.dart';
 import 'package:dlwms_mobile/services/check_status.dart';
 import 'package:dlwms_mobile/services/dlwms_client.dart';
+import 'package:dlwms_mobile/services/exam_reminders.dart';
 import 'package:dlwms_mobile/services/local_notifications.dart';
-import 'package:dlwms_mobile/services/obavijesti_watcher.dart';
 import 'package:dlwms_mobile/services/relevant_subjects.dart';
+import 'package:dlwms_mobile/services/watchers.dart';
 import 'package:dlwms_mobile/util/credentials.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,9 +20,19 @@ enum AuthProviderState {
 class AuthProvider extends ChangeNotifier {
   AuthProvider(this._prefs, {DlwmsClient? client})
       : client = client ?? DlwmsClient() {
-    final saved = Credentials.read(_prefs);
+    _restore();
+  }
+
+  /// Logs in with the saved credentials, if there are any.
+  Future<void> _restore() async {
+    Credentials? saved;
+    try {
+      saved = await CredentialStore.read(_prefs);
+    } catch (_) {
+      saved = null;
+    }
     if (saved != null) {
-      login(saved.username, saved.password, isAuto: true);
+      await login(saved.username, saved.password, isAuto: true);
     } else {
       state = AuthProviderState.unauthenticated;
     }
@@ -71,11 +82,11 @@ class AuthProvider extends ChangeNotifier {
 
       final previousUser = _prefs.getString(PrefKeys.username);
       if (previousUser != null && previousUser != username) {
-        await ObavijestiWatcher.reset(_prefs);
+        await DlwmsWatchers.reset(_prefs);
         await RelevantSubjects.clear(_prefs);
+        await ExamReminders.clear(_prefs);
       }
-      await _prefs.setString(PrefKeys.username, username);
-      await _prefs.setString(PrefKeys.password, password);
+      await CredentialStore.save(_prefs, username, password);
 
       state = AuthProviderState.authenticated;
       _startBackgroundIfEnabled();
@@ -118,8 +129,9 @@ class AuthProvider extends ChangeNotifier {
     await BackgroundService.stop();
     _backgroundRunning = false;
     await client.logout();
-    await _prefs.remove(PrefKeys.password);
-    await ObavijestiWatcher.reset(_prefs);
+    await CredentialStore.clearPassword(_prefs);
+    await DlwmsWatchers.reset(_prefs);
+    await ExamReminders.clear(_prefs);
     await RelevantSubjects.clear(_prefs);
     await CheckStatus.clear(_prefs);
     _errorMessage = null;
