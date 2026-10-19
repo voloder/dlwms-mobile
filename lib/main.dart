@@ -8,7 +8,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Lets the background service tell the UI when new announcements arrive.
-  BackgroundService.initCommunicationPort();
+  await BackgroundService.initialize();
   await LocalNotifications.init();
 
   final prefs = await SharedPreferences.getInstance();

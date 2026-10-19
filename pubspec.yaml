@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.3.0+3
+version: 0.4.0+4
 
 environment:
   sdk: ^3.6.0
@@ -36,10 +36,9 @@ dependencies:
   html: ^0.15.4
   intl: ^0.20.2
 
-  # Background check for new announcements every 300 s (Android foreground
-  # service) and the local notification it raises. Pinned below the releases
-  # that require Flutter 3.38+/AGP 9 so the current Gradle setup keeps working.
-  flutter_foreground_task: ^9.2.2
+  # Background check every ~5 minutes via a periodic alarm (no permanent
+  # notification, unlike a foreground service) and the alerts it raises.
+  android_alarm_manager_plus: ^5.1.2
   flutter_local_notifications: ^20.1.0
   # Time zones for scheduled exam reminders (already used by the plugin).
   timezone: ^0.10.0

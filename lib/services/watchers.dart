@@ -1,5 +1,6 @@
 import 'package:dlwms_mobile/models/ispit.dart';
 import 'package:dlwms_mobile/models/uspjeh.dart';
+import 'package:dlwms_mobile/provider/ispiti_provider.dart';
 import 'package:dlwms_mobile/services/dlwms_client.dart';
 import 'package:dlwms_mobile/services/ispiti_service.dart';
 import 'package:dlwms_mobile/services/local_notifications.dart';
@@ -216,9 +217,20 @@ class DlwmsWatchers {
         await SeenStore.detectNew(prefs, _termsKey, data.terms, (t) => t.id);
     if (!AlertKind.rokovi.isEnabled(prefs)) return 0;
 
+    // Apsolventski periods are hidden in the app unless turned on; don't
+    // alert about them either.
+    final showAbsolvent =
+        prefs.getBool(IspitiProvider.showAbsolventKey) ?? false;
+    final hiddenIds = {
+      for (final p in data.periods)
+        if (!showAbsolvent && IspitiProvider.isAbsolvent(p)) p.value,
+    };
+
     var shown = 0;
     final newPeriodIds = newPeriods.map((p) => p.value).toSet();
-    for (final period in newPeriods.take(_maxPerKind)) {
+    for (final period in newPeriods
+        .where((p) => !hiddenIds.contains(p.value))
+        .take(_maxPerKind)) {
       await LocalNotifications.show(
         channel: NotifyChannel.rokovi,
         key: 'period|${period.value}',
@@ -229,8 +241,11 @@ class DlwmsWatchers {
       shown++;
     }
     // Terms of a brand-new period are covered by the period alert.
-    final terms =
-        newTerms.where((t) => !newPeriodIds.contains(t.periodId)).toList();
+    final terms = newTerms
+        .where((t) =>
+            !newPeriodIds.contains(t.periodId) &&
+            !hiddenIds.contains(t.periodId))
+        .toList();
     for (final term in terms.take(_maxPerKind)) {
       await LocalNotifications.show(
         channel: NotifyChannel.rokovi,

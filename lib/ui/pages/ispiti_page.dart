@@ -74,7 +74,7 @@ class _IspitiView extends StatelessWidget {
                     child: _ActiveTestCard(test: test),
                   ),
                 _PeriodCard(provider: provider),
-                if (provider.terms.isEmpty)
+                if (provider.terms.isEmpty && provider.periods.isNotEmpty)
                   const SizedBox(
                     height: 300,
                     child: EmptyState(
@@ -111,7 +111,8 @@ class _IspitiView extends StatelessWidget {
   }
 }
 
-/// Exam period picker with a short summary.
+/// Exam period picker (one chip per period), a short summary and the
+/// "show apsolventski periods" switch.
 class _PeriodCard extends StatelessWidget {
   const _PeriodCard({required this.provider});
 
@@ -121,58 +122,91 @@ class _PeriodCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final onCard = scheme.onSecondaryContainer;
+    final periods = provider.periods;
     final upcoming = provider.upcoming;
     final next = upcoming.isEmpty ? null : upcoming.first;
 
-    final summary = next == null || next.dateTime == null
-        ? '${provider.terms.length} termina'
-        : '${upcoming.length} nadolazećih · sljedeći '
-            '${BsDates.daysFromNow(next.dateTime!)}';
+    final String summary;
+    if (periods.isEmpty) {
+      summary = '';
+    } else if (next == null || next.dateTime == null) {
+      summary = '${provider.terms.length} termina';
+    } else {
+      summary = '${upcoming.length} nadolazećih · sljedeći '
+          '${BsDates.daysFromNow(next.dateTime!)}';
+    }
 
     return Card(
       color: scheme.secondaryContainer,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
-                Icon(Icons.event_note_rounded,
-                    color: scheme.onSecondaryContainer),
+                Icon(Icons.event_note_rounded, color: onCard),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Ispitni rok',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(color: scheme.onSecondaryContainer),
+                    periods.length > 1 ? 'Ispitni rokovi' : 'Ispitni rok',
+                    style: theme.textTheme.titleMedium?.copyWith(color: onCard),
                   ),
                 ),
-                Text(
-                  summary,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSecondaryContainer.withValues(alpha: 0.8),
+                if (summary.isNotEmpty)
+                  Text(
+                    summary,
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: onCard.withValues(alpha: 0.8)),
                   ),
-                ),
               ],
             ),
             const SizedBox(height: 12),
-            if (provider.periods.length > 1)
-              DlwmsDropdown(
-                label: 'Rok',
-                options: provider.periods,
-                value: provider.selectedPeriod,
-                enabled: !provider.isBusy,
-                onChanged: provider.setPeriod,
+            if (periods.isEmpty)
+              Text(
+                provider.hiddenPeriods > 0
+                    ? 'Otvoreni su samo apsolventski rokovi.'
+                    : 'Trenutno nema otvorenih ispitnih rokova.',
+                style: theme.textTheme.bodyMedium?.copyWith(color: onCard),
               )
             else
-              Text(
-                provider.selectedPeriodName.isEmpty
-                    ? 'Trenutno nema otvorenih rokova'
-                    : provider.selectedPeriodName,
-                style: theme.textTheme.titleSmall
-                    ?.copyWith(color: scheme.onSecondaryContainer),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final period in periods)
+                    ChoiceChip(
+                      label: Text(period.label),
+                      selected: period.value == provider.selectedPeriod,
+                      showCheckmark: false,
+                      avatar: period.value == provider.selectedPeriod
+                          ? const Icon(Icons.check_rounded, size: 18)
+                          : null,
+                      onSelected: provider.isBusy
+                          ? null
+                          : (_) => provider.setPeriod(period.value),
+                    ),
+                ],
               ),
+            const SizedBox(height: 4),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              title: Text(
+                'Prikaži apsolventske ispitne rokove',
+                style: theme.textTheme.bodyMedium?.copyWith(color: onCard),
+              ),
+              subtitle: provider.hiddenPeriods > 0
+                  ? Text(
+                      'Skriveno: ${provider.hiddenPeriods}',
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: onCard.withValues(alpha: 0.75)),
+                    )
+                  : null,
+              value: provider.showAbsolvent,
+              onChanged: provider.isBusy ? null : provider.setShowAbsolvent,
+            ),
           ],
         ),
       ),

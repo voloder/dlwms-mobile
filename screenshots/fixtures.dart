@@ -103,25 +103,51 @@ String _termRow(int i, String subject, DateTime day, String time,
     '${registered ? ' checked="checked"' : ''} /></td></tr>';
 
 /// Exam terms relative to today, in the structure of `rokovi/index.aspx`.
-String rokoviPage() {
+/// [selected] is the exam period DLWMS shows (its default is the
+/// apsolventski one, which the app hides unless turned on).
+String rokoviPage([String selected = '760']) {
   final now = DateTime.now();
   DateTime day(int offset) => DateTime(now.year, now.month, now.day + offset);
+
+  const periods = {
+    '760': 'Apsolventski ispitni rokovi za oktobar 2026/27.',
+    '770': 'Zimski ispitni rok 2026/27.',
+    '751': 'Septembarski ispitni rok 2025/26.',
+  };
+
+  final rows = switch (selected) {
+    '770' => [
+        _termRow(2, 'Administracija baza podataka', day(1), '09:00',
+            registered: true),
+        _termRow(3, 'Kvalitet softvera', day(3), '12:00'),
+        _termRow(4, 'Interakcija čovjek-računar', day(6), '10:00'),
+        _termRow(5, 'Informacijska sigurnost', day(8), '13:00'),
+        _termRow(6, 'Razvoj softvera II', day(10), '11:00'),
+        _termRow(7, 'Poslovna inteligencija', day(13), '09:00'),
+      ],
+    '751' => [
+        _termRow(2, 'Razvoj softvera I', day(-30), '11:00'),
+        _termRow(3, 'Baze podataka II', day(-27), '09:00'),
+      ],
+    _ => [
+        _termRow(2, 'Razvoj softvera I', day(-1), '11:00'),
+        _termRow(3, 'Modeliranje poslovnih procesa', day(1), '13:00'),
+        _termRow(4, 'Upravljanje projektom', day(4), '11:00'),
+      ],
+  };
+
+  final options = periods.entries
+      .map((e) => '<option ${e.key == selected ? 'selected="selected" ' : ''}'
+          'value="${e.key}">${e.value}</option>')
+      .join();
+
   return '''
 <html><body><form method="post" action="./index.aspx">
 <input type="hidden" name="__VIEWSTATE" value="x" />
-<select name="ctl00\$ContentPlaceHolder1\$listRokovi" id="listRokovi">
-<option selected="selected" value="760">Apsolventski ispitni rokovi za oktobar 2026/27.</option>
-<option value="751">Septembarski ispitni rok 2025/26.</option>
-</select>
+<select name="ctl00\$ContentPlaceHolder1\$listRokovi" id="listRokovi">$options</select>
 <table cellspacing="5" cellpadding="2" id="gridTermini" style="width:100%;">
 <tr class="Header"><td>Naslov</td><td>Datum</td><td>Vrijeme</td><td>Zauzeto mjesta</td><td>&nbsp;</td></tr>
-${_termRow(2, 'Razvoj softvera I', day(-1), '11:00')}
-${_termRow(3, 'Modeliranje poslovnih procesa', day(1), '13:00', registered: true)}
-${_termRow(4, 'Interakcija čovjek-računar online', day(3), '17:00')}
-${_termRow(5, 'Upravljanje projektom', day(4), '11:00')}
-${_termRow(6, 'Dizajn i razvoj IOT projekata', day(5), '13:00')}
-${_termRow(7, 'Razvoj softvera II', day(7), '12:00')}
-${_termRow(8, 'Informacijska sigurnost', day(9), '10:00')}
+${rows.join('\n')}
 </table>
 <input type="submit" name="ctl00\$ContentPlaceHolder1\$bntPrijava" value="Prijavi odabrane ispite" />
 </form></body></html>

@@ -99,7 +99,13 @@ DlwmsClient _fixtureClient() {
       if (path.endsWith('/pretraga.aspx')) return page(dokumenti);
       if (path.endsWith('/prisustvo.aspx')) return page(prisustvoPage);
       if (path.endsWith('/uspjeh.aspx')) return page(uspjehPage);
-      if (path.endsWith('/rokovi/index.aspx')) return page(rokoviPage());
+      if (path.endsWith('/rokovi/index.aspx')) {
+        final period = request.method == 'POST'
+            ? Uri.splitQueryString(request.body)[
+                r'ctl00$ContentPlaceHolder1$listRokovi']
+            : null;
+        return page(rokoviPage(period ?? '760'));
+      }
       if (path.endsWith('/eusasstudenthome.aspx')) return page(testsPage());
       if (path.endsWith('/arhiva.aspx')) {
         return page(request.method == 'POST' ? arhivaResults : arhivaForm);

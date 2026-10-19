@@ -1,89 +1,70 @@
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui';
 
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:dlwms_mobile/services/check_status.dart';
 import 'package:dlwms_mobile/services/dlwms_client.dart';
 import 'package:dlwms_mobile/services/local_notifications.dart';
 import 'package:dlwms_mobile/services/watchers.dart';
 import 'package:dlwms_mobile/util/credentials.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// How often DLWMS is checked for new announcements.
+/// How often DLWMS is checked in the background (Android may stretch this
+/// while the phone is idle).
 const Duration obavijestiCheckInterval = Duration(seconds: 300);
 
-/// Message sent from the service to the UI after every check.
+/// Message sent from the background check to the UI after every check.
 const String checkDoneMessage = 'check_done';
 
-/// Channel used by the foreground service. It is created with importance
-/// NONE, so Android shows nothing for it in the status bar or the shade.
-/// (Channel settings can't change once created, hence a new id.)
-const String _serviceChannelId = 'dlwms_background_silent';
-const String _oldServiceChannelId = 'dlwms_background_check';
-const String _channelPrefKey = 'background_service_channel';
+const int _alarmId = 300;
+const String _uiPortName = 'dlwms_ui_port';
+const String _scheduledKey = 'background_alarm_scheduled';
 
-/// Entry point of the background isolate. Must be top-level.
+/// Channels used by the old foreground service (removed in 0.4).
+const List<String> _oldChannels = [
+  'dlwms_background_silent',
+  'dlwms_background_check',
+];
+
+/// Session kept between runs while Android keeps the background isolate
+/// alive, so DLWMS isn't logged into every five minutes.
+DlwmsClient? _backgroundClient;
+
+/// Runs one background check. Started by a periodic, inexact alarm, so no
+/// notification has to be shown while it runs (unlike a foreground service).
 @pragma('vm:entry-point')
-void obavijestiServiceCallback() {
-  FlutterForegroundTask.setTaskHandler(ObavijestiTaskHandler());
-}
+Future<void> backgroundCheckCallback() async {
+  DartPluginRegistrant.ensureInitialized();
 
-/// Runs inside the Android foreground service: every 300 s it logs in (only
-/// when the session has expired) and runs [DlwmsWatchers.runChecks], which
-/// alerts about new announcements, documents, grades, tests and exam terms.
-class ObavijestiTaskHandler extends TaskHandler {
-  DlwmsClient? _client;
-  bool _checking = false;
-
-  @override
-  Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
+  SharedPreferences? prefs;
+  try {
+    prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
     await LocalNotifications.init();
-    await _check();
-  }
 
-  @override
-  void onRepeatEvent(DateTime timestamp) {
-    _check();
-  }
-
-  @override
-  Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {
-    _client?.close();
-    _client = null;
-  }
-
-  /// Runs one check and records the outcome for the settings sheet. The
-  /// service's own notification is invisible, so nothing is updated there.
-  Future<void> _check() async {
-    if (_checking) return;
-    _checking = true;
-
-    SharedPreferences? prefs;
-    try {
-      prefs = await SharedPreferences.getInstance();
-      await prefs.reload();
-
-      final credentials = await CredentialStore.read(prefs);
-      if (credentials == null) {
-        await CheckStatus.save(prefs, CheckResult.authFailed);
-        return;
-      }
-
-      final client = _client ??= DlwmsClient();
-      client.setCredentials(credentials.username, credentials.password);
-
-      final shown = await DlwmsWatchers.runChecks(client, prefs);
-      await CheckStatus.save(prefs, CheckResult.ok, newCount: shown);
-    } on DlwmsAuthException {
-      if (prefs != null) await CheckStatus.save(prefs, CheckResult.authFailed);
-    } catch (e) {
-      debugPrint('[ObavijestiTaskHandler] check failed: $e');
-      if (prefs != null) await CheckStatus.save(prefs, CheckResult.error);
-    } finally {
-      _checking = false;
-      // Lets an open app refresh the list and the "last check" line.
-      FlutterForegroundTask.sendDataToMain({'type': checkDoneMessage});
+    final credentials = await CredentialStore.read(prefs);
+    if (credentials == null) {
+      await CheckStatus.save(prefs, CheckResult.authFailed);
+      return;
     }
+
+    final client = _backgroundClient ??= DlwmsClient();
+    client.setCredentials(credentials.username, credentials.password);
+
+    final shown = await DlwmsWatchers.runChecks(client, prefs);
+    await CheckStatus.save(prefs, CheckResult.ok, newCount: shown);
+  } on DlwmsAuthException {
+    if (prefs != null) await CheckStatus.save(prefs, CheckResult.authFailed);
+  } catch (e) {
+    debugPrint('[backgroundCheck] failed: $e');
+    if (prefs != null) await CheckStatus.save(prefs, CheckResult.error);
+  } finally {
+    // Lets an open app refresh the list and the "last check" line.
+    IsolateNameServer.lookupPortByName(_uiPortName)
+        ?.send({'type': checkDoneMessage});
   }
 }
 
@@ -91,102 +72,75 @@ class ObavijestiTaskHandler extends TaskHandler {
 class BackgroundService {
   static bool get isSupported => !kIsWeb && Platform.isAndroid;
 
-  static bool _configured = false;
+  static const MethodChannel _system = MethodChannel('dev.voloder.dlwms/system');
+
+  static ReceivePort? _port;
+  static final List<void Function(Object data)> _listeners = [];
 
   /// Call once in `main()` before `runApp`.
-  static void initCommunicationPort() {
-    if (isSupported) FlutterForegroundTask.initCommunicationPort();
-  }
+  static Future<void> initialize() async {
+    if (!isSupported) return;
 
-  static void _configure() {
-    if (_configured) return;
-    FlutterForegroundTask.init(
-      androidNotificationOptions: AndroidNotificationOptions(
-        channelId: _serviceChannelId,
-        channelName: 'Provjera obavijesti u pozadini',
-        channelDescription:
-            'Tehnički kanal pozadinske provjere. Ne prikazuje obavještenja; '
-            'status provjere je u postavkama aplikacije.',
-        channelImportance: NotificationChannelImportance.NONE,
-        priority: NotificationPriority.MIN,
-        visibility: NotificationVisibility.VISIBILITY_SECRET,
-        onlyAlertOnce: true,
-      ),
-      iosNotificationOptions: const IOSNotificationOptions(
-        showNotification: false,
-        playSound: false,
-      ),
-      foregroundTaskOptions: ForegroundTaskOptions(
-        eventAction: ForegroundTaskEventAction.repeat(
-          obavijestiCheckInterval.inMilliseconds,
-        ),
-        autoRunOnBoot: true,
-        autoRunOnMyPackageReplaced: true,
-        allowWakeLock: true,
-        allowWifiLock: true,
-      ),
-    );
-    _configured = true;
-  }
+    final port = ReceivePort();
+    IsolateNameServer.removePortNameMapping(_uiPortName);
+    IsolateNameServer.registerPortWithName(port.sendPort, _uiPortName);
+    port.listen((message) {
+      if (message == null) return;
+      for (final listener in List.of(_listeners)) {
+        listener(message as Object);
+      }
+    });
+    _port = port;
 
-  static Future<bool> get isRunning async {
-    if (!isSupported) return false;
     try {
-      return await FlutterForegroundTask.isRunningService;
-    } catch (_) {
-      return false;
+      await AndroidAlarmManager.initialize();
+    } catch (e) {
+      debugPrint('[BackgroundService] init failed: $e');
     }
   }
 
-  /// Requests the needed permissions and starts the service. Returns whether
-  /// the service is running afterwards.
+  /// Whether the periodic background check is scheduled.
+  static Future<bool> get isRunning async {
+    if (!isSupported) return false;
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_scheduledKey) ?? false;
+  }
+
+  /// Schedules the periodic check (and asks for the permissions it needs).
+  /// Returns whether it is scheduled afterwards.
   static Future<bool> start(SharedPreferences prefs) async {
     if (!isSupported) return false;
 
     try {
-      final permission =
-          await FlutterForegroundTask.checkNotificationPermission();
-      if (permission != NotificationPermission.granted) {
-        await FlutterForegroundTask.requestNotificationPermission();
-      }
+      await LocalNotifications.requestPermission();
 
-      // Without this, Doze may delay checks for a long time. Ask only once.
-      if (!(prefs.getBool(PrefKeys.batteryPromptShown) ?? false) &&
-          !await FlutterForegroundTask.isIgnoringBatteryOptimizations) {
+      // Without this, Android delays background work a lot while the phone
+      // is idle. Ask only once.
+      if (!(prefs.getBool(PrefKeys.batteryPromptShown) ?? false)) {
         await prefs.setBool(PrefKeys.batteryPromptShown, true);
-        await FlutterForegroundTask.requestIgnoreBatteryOptimization();
+        try {
+          await _system.invokeMethod('requestIgnoreBatteryOptimizations');
+        } catch (_) {}
       }
 
-      _configure();
-
-      // A service started by an older version still uses the old, visible
-      // channel; restart it from scratch so it picks up the silent one.
-      final migrated = prefs.getString(_channelPrefKey) == _serviceChannelId;
-      if (await FlutterForegroundTask.isRunningService) {
-        if (migrated) {
-          await FlutterForegroundTask.restartService();
-          return true;
-        }
-        await FlutterForegroundTask.stopService();
+      for (final channel in _oldChannels) {
+        await LocalNotifications.deleteChannel(channel);
       }
 
-      final result = await FlutterForegroundTask.startService(
-        serviceId: 300,
-        serviceTypes: [ForegroundServiceTypes.specialUse],
-        notificationTitle: 'DLWMS',
-        notificationText: 'Provjera obavijesti',
-        notificationInitialRoute: '/',
-        callback: obavijestiServiceCallback,
+      final ok = await AndroidAlarmManager.periodic(
+        obavijestiCheckInterval,
+        _alarmId,
+        backgroundCheckCallback,
+        startAt: DateTime.now().add(const Duration(minutes: 1)),
+        allowWhileIdle: true,
+        wakeup: true,
+        rescheduleOnReboot: true,
       );
-
-      if (result is ServiceRequestSuccess) {
-        await prefs.setString(_channelPrefKey, _serviceChannelId);
-        await LocalNotifications.deleteChannel(_oldServiceChannelId);
-        return true;
-      }
-      return false;
+      await prefs.setBool(_scheduledKey, ok);
+      return ok;
     } catch (e) {
       debugPrint('[BackgroundService] start failed: $e');
+      await prefs.setBool(_scheduledKey, false);
       return false;
     }
   }
@@ -194,19 +148,23 @@ class BackgroundService {
   static Future<void> stop() async {
     if (!isSupported) return;
     try {
-      if (await FlutterForegroundTask.isRunningService) {
-        await FlutterForegroundTask.stopService();
-      }
+      await AndroidAlarmManager.cancel(_alarmId);
     } catch (e) {
       debugPrint('[BackgroundService] stop failed: $e');
     }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_scheduledKey, false);
   }
 
   static void addListener(void Function(Object data) callback) {
-    if (isSupported) FlutterForegroundTask.addTaskDataCallback(callback);
+    if (isSupported) _listeners.add(callback);
   }
 
   static void removeListener(void Function(Object data) callback) {
-    if (isSupported) FlutterForegroundTask.removeTaskDataCallback(callback);
+    _listeners.remove(callback);
   }
+
+  /// Keeps the analyzer happy about the port being retained on purpose.
+  @visibleForTesting
+  static bool get hasPort => _port != null;
 }

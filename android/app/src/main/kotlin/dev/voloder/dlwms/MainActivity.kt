@@ -2,6 +2,9 @@ package dev.voloder.dlwms
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.Uri
+import android.os.PowerManager
+import android.provider.Settings
 import android.provider.CalendarContract
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -31,6 +34,30 @@ class MainActivity : FlutterActivity() {
 
                 try {
                     startActivity(intent)
+                    result.success(true)
+                } catch (e: ActivityNotFoundException) {
+                    result.success(false)
+                }
+            }
+
+        // Asks once to exempt the app from battery optimisation, so Android
+        // doesn't hold back the periodic background check for hours.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "dev.voloder.dlwms/system")
+            .setMethodCallHandler { call, result ->
+                if (call.method != "requestIgnoreBatteryOptimizations") {
+                    result.notImplemented()
+                    return@setMethodCallHandler
+                }
+                val power = getSystemService(POWER_SERVICE) as PowerManager
+                if (power.isIgnoringBatteryOptimizations(packageName)) {
+                    result.success(true)
+                    return@setMethodCallHandler
+                }
+                try {
+                    startActivity(
+                        Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                            .setData(Uri.parse("package:$packageName"))
+                    )
                     result.success(true)
                 } catch (e: ActivityNotFoundException) {
                     result.success(false)

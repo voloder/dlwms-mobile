@@ -550,9 +550,10 @@ class _NotificationsCard extends StatelessWidget {
       return 'Svakih 5 minuta dok je aplikacija otvorena.';
     }
     if (auth.backgroundCheckEnabled && !auth.backgroundRunning) {
-      return 'Nije pokrenuta. Provjeri dozvolu za obavještenja.';
+      return 'Nije pokrenuta. Isključi pa uključi ovu opciju.';
     }
-    return 'Svakih 5 minuta, i kad je aplikacija zatvorena.';
+    return 'Otprilike svakih 5 minuta, i kad je aplikacija zatvorena, bez '
+        'stalnog obavještenja. Kad telefon miruje, Android je može odgoditi.';
   }
 
   static String _lastCheckText(CheckStatus? status) {

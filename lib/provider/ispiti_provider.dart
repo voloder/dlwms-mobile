@@ -29,12 +29,40 @@ class IspitiProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isBusy => _busy;
 
-  List<DlwmsFilterOption> get periods =>
-      (_data?.periods ?? const []).where((p) => p.value.isNotEmpty).toList();
-  String get selectedPeriod => selectedOption(periods)?.value ?? '';
-  String get selectedPeriodName => selectedOption(periods)?.label ?? '';
+  static const String showAbsolventKey = 'show_absolvent_periods';
 
-  List<ExamTerm> get terms => _data?.terms ?? const [];
+  /// "Apsolventski ispitni rokovi …" – only relevant to graduates, so hidden
+  /// unless the user turns them on.
+  static bool isAbsolvent(DlwmsFilterOption period) =>
+      period.label.toLowerCase().contains('apsolvent');
+
+  bool get showAbsolvent =>
+      _authProvider?.prefs.getBool(showAbsolventKey) ?? false;
+
+  List<DlwmsFilterOption> get _allPeriods =>
+      (_data?.periods ?? const []).where((p) => p.value.isNotEmpty).toList();
+
+  /// Periods the user can pick from.
+  List<DlwmsFilterOption> get periods => _allPeriods
+      .where((p) => showAbsolvent || !isAbsolvent(p))
+      .toList();
+
+  /// How many apsolventski periods are currently hidden.
+  int get hiddenPeriods => _allPeriods.length - periods.length;
+
+  DlwmsFilterOption? get _selected => selectedOption(_allPeriods);
+
+  bool get _selectedVisible {
+    final selected = _selected;
+    return selected != null && (showAbsolvent || !isAbsolvent(selected));
+  }
+
+  String get selectedPeriod => _selectedVisible ? _selected!.value : '';
+  String get selectedPeriodName => _selectedVisible ? _selected!.label : '';
+
+  /// Terms of the selected period (none while a hidden period is selected).
+  List<ExamTerm> get terms =>
+      _selectedVisible ? (_data?.terms ?? const []) : const [];
   List<ExamTerm> get upcoming => terms.where((t) => !t.isPast()).toList();
   List<ExamTerm> get past => terms.where((t) => t.isPast()).toList();
   List<ActiveTest> get activeTests => _activeTests;
@@ -53,7 +81,26 @@ class IspitiProvider extends ChangeNotifier {
           _loadActiveTests(),
         ]);
         _apply(results[0] as DlwmsPage);
+        await _ensureVisiblePeriod();
       });
+
+  /// DLWMS opens on its default period; if that one is hidden, switch to the
+  /// first visible period instead.
+  Future<void> _ensureVisiblePeriod() async {
+    final page = _page;
+    if (page == null || _selectedVisible || periods.isEmpty) return;
+    final value = periods.first.value;
+    _apply(await _client.postBack(page, IspitiService.periodField,
+        fields: {IspitiService.periodField: value}));
+  }
+
+  Future<void> setShowAbsolvent(bool value) async {
+    final prefs = _authProvider?.prefs;
+    if (prefs == null) return;
+    await prefs.setBool(showAbsolventKey, value);
+    notifyListeners();
+    if (!value) await _run(_ensureVisiblePeriod);
+  }
 
   Future<void> refresh() => fetch();
 
