@@ -12,9 +12,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// How often DLWMS is checked in the background (Android may stretch this
-/// while the phone is idle).
-const Duration obavijestiCheckInterval = Duration(seconds: 300);
+/// Choices for "Učestalost provjere", in minutes.
+const List<int> checkIntervalChoices = [5, 15, 30, 60];
+const int defaultCheckIntervalMinutes = 15;
+const String checkIntervalKey = 'check_interval_minutes';
+
+/// How often DLWMS is checked, both in the background (Android may stretch
+/// this while the phone is idle) and while the app is open.
+Duration checkInterval(SharedPreferences prefs) {
+  final minutes = prefs.getInt(checkIntervalKey);
+  return Duration(
+    minutes: checkIntervalChoices.contains(minutes)
+        ? minutes!
+        : defaultCheckIntervalMinutes,
+  );
+}
 
 /// Message sent from the background check to the UI after every check.
 const String checkDoneMessage = 'check_done';
@@ -128,7 +140,7 @@ class BackgroundService {
       }
 
       final ok = await AndroidAlarmManager.periodic(
-        obavijestiCheckInterval,
+        checkInterval(prefs),
         _alarmId,
         backgroundCheckCallback,
         startAt: DateTime.now().add(const Duration(minutes: 1)),

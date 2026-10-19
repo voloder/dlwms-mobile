@@ -479,8 +479,7 @@ class _AlertsCardState extends State<_AlertsCard> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
           child: Text(
-            'Obavijesti i dokumenti se provjeravaju svakih 5 minuta, a '
-            'ocjene, testovi i rokovi svakih 15 minuta.',
+            _scheduleNote(context.watch<AuthProvider>().checkIntervalMinutes),
             style: theme.textTheme.bodySmall
                 ?.copyWith(color: theme.colorScheme.outline),
           ),
@@ -488,7 +487,17 @@ class _AlertsCardState extends State<_AlertsCard> {
       ],
     );
   }
+
+  static String _scheduleNote(int minutes) => minutes < 15
+      ? 'Obavijesti i dokumenti se provjeravaju svakih $minutes minuta, '
+          'ostalo svakih 15 minuta.'
+      : 'Sve se provjerava ${_intervalPhrase(minutes)}.';
 }
+
+String _intervalLabel(int minutes) => minutes == 60 ? '1 h' : '$minutes min';
+
+String _intervalPhrase(int minutes) =>
+    minutes == 60 ? 'svakih sat vremena' : 'svakih $minutes minuta';
 
 class _NotificationsCard extends StatelessWidget {
   const _NotificationsCard();
@@ -528,12 +537,14 @@ class _NotificationsCard extends StatelessWidget {
           ),
         ),
         const Divider(indent: 16, endIndent: 16),
+        _IntervalPicker(auth: auth),
+        const Divider(indent: 16, endIndent: 16),
         SwitchListTile(
           contentPadding: const EdgeInsets.fromLTRB(16, 4, 12, 4),
           secondary: const Icon(Icons.filter_alt_outlined),
           title: const Text('Prikaži samo relevantne obavijesti'),
           subtitle: const Text(
-            'Predmeti tvoje godine studija i oni bez ocjene. '
+            'Samo predmeti tvoje godine i oni koje još nisi položio. '
             'Opće obavijesti se uvijek prikazuju.',
           ),
           value: notifications.relevantOnly,
@@ -547,13 +558,13 @@ class _NotificationsCard extends StatelessWidget {
 
   static String _backgroundDescription(AuthProvider auth) {
     if (!BackgroundService.isSupported) {
-      return 'Svakih 5 minuta dok je aplikacija otvorena.';
+      return 'Nije podržano na ovom uređaju. Provjera radi dok je '
+          'aplikacija otvorena.';
     }
     if (auth.backgroundCheckEnabled && !auth.backgroundRunning) {
       return 'Nije pokrenuta. Isključi pa uključi ovu opciju.';
     }
-    return 'Otprilike svakih 5 minuta, i kad je aplikacija zatvorena, bez '
-        'stalnog obavještenja. Kad telefon miruje, Android je može odgoditi.';
+    return 'Javlja novosti i kad je aplikacija zatvorena.';
   }
 
   static String _lastCheckText(CheckStatus? status) {
@@ -570,10 +581,72 @@ class _NotificationsCard extends StatelessWidget {
       CheckResult.ok => status.newCount == 0
           ? 'ništa novo'
           : 'novih obavještenja: ${status.newCount}',
-      CheckResult.authFailed => 'prijava nije uspjela, otvorite aplikaciju',
-      CheckResult.error => 'nije uspjela, pokušava ponovo za 5 minuta',
+      CheckResult.authFailed => 'prijava nije uspjela, otvori aplikaciju',
+      CheckResult.error => 'nije uspjela, pokušat će ponovo',
     };
     return 'Zadnja provjera u $when · $result';
+  }
+}
+
+/// "Učestalost provjere": how often DLWMS is checked.
+class _IntervalPicker extends StatelessWidget {
+  const _IntervalPicker({required this.auth});
+
+  final AuthProvider auth;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final minutes = auth.checkIntervalMinutes;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.schedule_rounded,
+                  color: theme.colorScheme.onSurfaceVariant),
+              const SizedBox(width: 32),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Učestalost provjere',
+                        style: theme.textTheme.bodyLarge),
+                    Text(
+                      minutes <= 5
+                          ? 'Najbrže, ali troši više baterije.'
+                          : 'Kad telefon miruje, provjera može malo kasniti.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<int>(
+              showSelectedIcon: false,
+              segments: [
+                for (final choice in checkIntervalChoices)
+                  ButtonSegment(
+                    value: choice,
+                    label: Text(_intervalLabel(choice)),
+                  ),
+              ],
+              selected: {minutes},
+              onSelectionChanged: (selection) =>
+                  auth.setCheckInterval(selection.first),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

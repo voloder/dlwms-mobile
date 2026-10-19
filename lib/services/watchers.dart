@@ -16,10 +16,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Kinds of alerts the user can switch on or off in Settings.
 enum AlertKind {
   obavijesti('Nove obavijesti', 'Obavijesti sa početne stranice'),
-  ocjene('Nove ocjene', 'Kada se na Uspjehu pojavi nova ocjena'),
-  testovi('Testovi', 'Aktivan test i rezultat testa'),
+  ocjene('Nove ocjene', 'Kad dobiješ novu ocjenu'),
+  testovi('Testovi', 'Kad se test otvori ili objavi rezultat'),
   rokovi('Ispitni rokovi', 'Novi ispitni rok ili termin ispita'),
-  dokumenti('Novi dokumenti', 'Dokumenti iz tvojih predmeta');
+  dokumenti('Novi dokumenti', 'Novi materijali iz predmeta');
 
   const AlertKind(this.title, this.description);
 
@@ -68,9 +68,11 @@ class DlwmsWatchers {
 
     await prefs.reload();
     final last = prefs.getInt(_lastExtendedKey) ?? 0;
+    // Alarms are inexact, so allow a little slack: with a 15-minute interval
+    // a check that fires at 14:50 should still count.
     final due = forceExtended ||
         DateTime.now().millisecondsSinceEpoch - last >=
-            extendedInterval.inMilliseconds;
+            (extendedInterval - const Duration(minutes: 2)).inMilliseconds;
     if (!due) return shown;
 
     // Each page is checked on its own so one failure doesn't hide the rest.

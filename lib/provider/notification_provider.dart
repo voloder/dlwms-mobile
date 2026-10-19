@@ -13,7 +13,8 @@ import 'package:flutter/widgets.dart';
 
 enum NotificationProviderState { loading, loaded, error }
 
-/// Home-page announcements. Refreshes every 300 s while the app is open, and
+/// Home-page announcements. Refreshes at the chosen check interval while the
+/// app is open, and
 /// when the background service reports a check with new items.
 ///
 /// Also owns the "Prikaži samo relevantne obavijesti" setting and the status
@@ -39,6 +40,7 @@ class NotificationProvider extends ChangeNotifier {
   AuthProvider? _authProvider;
   late final AppLifecycleListener _lifecycle;
   Timer? _timer;
+  Duration? _timerInterval;
 
   bool get _isAuthenticated =>
       _authProvider?.state == AuthProviderState.authenticated;
@@ -253,7 +255,14 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   void _startTimer() {
-    _timer ??= Timer.periodic(obavijestiCheckInterval, (_) {
+    final prefs = _authProvider?.prefs;
+    if (prefs == null) return;
+    final interval = checkInterval(prefs);
+    if (_timer != null && _timerInterval == interval) return;
+
+    _timer?.cancel();
+    _timerInterval = interval;
+    _timer = Timer.periodic(interval, (_) {
       fetchNotifications(silent: true);
     });
   }
@@ -261,6 +270,7 @@ class NotificationProvider extends ChangeNotifier {
   void _stopTimer() {
     _timer?.cancel();
     _timer = null;
+    _timerInterval = null;
   }
 
   @override

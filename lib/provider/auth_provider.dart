@@ -114,6 +114,19 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  int get checkIntervalMinutes => checkInterval(_prefs).inMinutes;
+
+  /// Saves the check interval and reschedules the background check.
+  Future<void> setCheckInterval(int minutes) async {
+    if (minutes == checkIntervalMinutes) return;
+    await _prefs.setInt(checkIntervalKey, minutes);
+    notifyListeners();
+    if (backgroundCheckEnabled) {
+      _backgroundRunning = await BackgroundService.start(_prefs);
+      notifyListeners();
+    }
+  }
+
   Future<void> setBackgroundCheckEnabled(bool enabled) async {
     await _prefs.setBool(PrefKeys.backgroundCheck, enabled);
     if (enabled) {
