@@ -35,7 +35,7 @@ const int _alarmId = 300;
 const String _uiPortName = 'dlwms_ui_port';
 const String _scheduledKey = 'background_alarm_scheduled';
 
-/// Channels used by the old foreground service (removed in 0.4).
+/// Channels used by the old foreground service (removed in 0.3.2).
 const List<String> _oldChannels = [
   'dlwms_background_silent',
   'dlwms_background_check',
