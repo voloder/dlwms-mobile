@@ -596,38 +596,24 @@ class _IntervalPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final minutes = auth.checkIntervalMinutes;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.schedule_rounded,
-                  color: theme.colorScheme.onSurfaceVariant),
-              const SizedBox(width: 32),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Učestalost provjere',
-                        style: theme.textTheme.bodyLarge),
-                    Text(
-                      minutes <= 5
-                          ? 'Najbrže, ali troši više baterije.'
-                          : 'Kad telefon miruje, provjera može malo kasniti.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.schedule_rounded),
+            title: const Text('Učestalost provjere'),
+            subtitle: Text(
+              minutes <= 5
+                  ? 'Najbrže, ali troši više baterije.'
+                  : 'Kad telefon miruje, provjera može malo kasniti.',
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 4),
           SizedBox(
             width: double.infinity,
             child: SegmentedButton<int>(
