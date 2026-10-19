@@ -506,7 +506,7 @@ class _NotificationsCard extends StatelessWidget {
         SwitchListTile(
           contentPadding: const EdgeInsets.fromLTRB(16, 4, 12, 0),
           secondary: const Icon(Icons.notifications_active_outlined),
-          title: const Text('Provjera obavijesti u pozadini'),
+          title: const Text('Provjera u pozadini'),
           subtitle: Text(_backgroundDescription(auth)),
           value: BackgroundService.isSupported && auth.backgroundCheckEnabled,
           onChanged: BackgroundService.isSupported
@@ -567,7 +567,7 @@ class _NotificationsCard extends StatelessWidget {
 
     final result = switch (status.result) {
       CheckResult.ok => status.newCount == 0
-          ? 'nema novih obavijesti'
+          ? 'ništa novo'
           : 'novih obavještenja: ${status.newCount}',
       CheckResult.authFailed => 'prijava nije uspjela, otvorite aplikaciju',
       CheckResult.error => 'nije uspjela, pokušava ponovo za 5 minuta',
