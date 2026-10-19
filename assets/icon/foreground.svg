@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#2D6BD6"/>
+    <stop offset="0.55" stop-color="#1A4FA6"/>
+    <stop offset="1" stop-color="#0B2A63"/>
+  </linearGradient>
+  <radialGradient id="glow" cx="0.3" cy="0.22" r="0.75">
+    <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"/>
+    <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+  </radialGradient>
+</defs><g transform="translate(512 512) scale(0.8) translate(-512 -512)">
+  <!-- cap band -->
+  <path d="M332 500 L332 640 Q512 735 692 640 L692 500 Z" fill="#D6E3FA"/>
+  <!-- board -->
+  <path d="M512 300 L842 438 L512 576 L182 438 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="18" stroke-linejoin="round"/>
+  <!-- button -->
+  <circle cx="512" cy="438" r="20" fill="#1A4FA6" />
+  <!-- tassel -->
+  <path d="M512 438 L778 476 L778 610" fill="none" stroke="#FFB61E" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="778" cy="652" r="52" fill="#123E86"/>
+  <circle cx="778" cy="652" r="42" fill="#FFB61E"/>
+</g></svg>

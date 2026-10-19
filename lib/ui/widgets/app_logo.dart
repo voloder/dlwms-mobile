@@ -1,7 +1,9 @@
-import 'package:dlwms_mobile/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
-/// Rounded app mark used on the login and loading screens.
+/// The app mark (graduation cap with an amber "notification" tassel) on a
+/// rounded tile in the current accent colour. Used on the login and loading
+/// screens; the launcher icon is generated from the same artwork
+/// (assets/icon/).
 class AppLogo extends StatelessWidget {
   const AppLogo({super.key, this.size = 88});
 
@@ -14,13 +16,13 @@ class AppLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.large + 4),
+        borderRadius: BorderRadius.circular(size * 0.25),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            scheme.primary,
-            Color.lerp(scheme.primary, Colors.black, 0.25)!,
+            Color.lerp(scheme.primary, Colors.white, 0.12)!,
+            Color.lerp(scheme.primary, Colors.black, 0.35)!,
           ],
         ),
         boxShadow: [
@@ -31,7 +33,14 @@ class AppLogo extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(Icons.school_rounded, size: size * 0.5, color: scheme.onPrimary),
+      child: Padding(
+        padding: EdgeInsets.all(size * 0.06),
+        child: Image.asset(
+          'assets/icon/mark.png',
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.medium,
+        ),
+      ),
     );
   }
 }
