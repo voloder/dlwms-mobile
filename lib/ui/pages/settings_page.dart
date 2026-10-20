@@ -636,7 +636,8 @@ class _IntervalPicker extends StatelessWidget {
   }
 }
 
-/// Chips with the subjects that currently count as relevant.
+/// The subjects that currently count as relevant. The user can remove any of
+/// them, add others, or go back to the automatic list.
 class _RelevantSubjects extends StatelessWidget {
   const _RelevantSubjects({required this.provider});
 
@@ -644,9 +645,12 @@ class _RelevantSubjects extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = provider.relevantSubjects;
+    final subjects = provider.relevantSubjects ?? const <String>[];
     final loading = provider.loadingRelevantSubjects;
+    final edited = provider.relevantSubjectsEdited;
     final theme = Theme.of(context);
+    final muted =
+        theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(72, 0, 8, 12),
@@ -657,7 +661,7 @@ class _RelevantSubjects extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  subjects == null
+                  provider.relevantSubjects == null
                       ? 'Relevantni predmeti'
                       : 'Relevantni predmeti (${subjects.length})',
                   style: theme.textTheme.labelLarge,
@@ -680,35 +684,164 @@ class _RelevantSubjects extends StatelessWidget {
                     ),
             ],
           ),
-          if (subjects == null || subjects.isEmpty)
-            Text(
-              loading
-                  ? 'Učitavam predmete...'
-                  : 'Nije učitana – prikazuju se sve obavijesti.',
-              style: theme.textTheme.bodySmall,
-            )
-          else
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                for (final subject in subjects)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(AppRadius.small),
-                    ),
-                    child: Text(
-                      subject,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSecondaryContainer),
-                    ),
-                  ),
-              ],
+          if (subjects.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                loading
+                    ? 'Učitavam predmete...'
+                    : 'Lista je prazna – prikazuju se sve obavijesti.',
+                style: theme.textTheme.bodySmall,
+              ),
             ),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final subject in subjects)
+                InputChip(
+                  label: Text(subject),
+                  avatar: provider.isAddedByUser(subject)
+                      ? const Icon(Icons.person_add_alt_1_rounded, size: 16)
+                      : null,
+                  tooltip: provider.isAddedByUser(subject)
+                      ? 'Dodao si ručno'
+                      : null,
+                  visualDensity: VisualDensity.compact,
+                  onDeleted: () => provider.removeRelevantSubject(subject),
+                  deleteButtonTooltipMessage: 'Ukloni',
+                ),
+              ActionChip(
+                avatar: const Icon(Icons.add_rounded, size: 18),
+                label: const Text('Dodaj predmet'),
+                visualDensity: VisualDensity.compact,
+                onPressed: () => _addSubject(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  edited
+                      ? 'Lista je ručno izmijenjena.'
+                      : 'Ukloni ili dodaj predmete po želji.',
+                  style: muted,
+                ),
+              ),
+              if (edited)
+                TextButton(
+                  onPressed: provider.resetRelevantSubjects,
+                  child: const Text('Vrati automatski'),
+                ),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _addSubject(BuildContext context) async {
+    final name = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (_) => _AddSubjectSheet(options: provider.addableSubjects),
+    );
+    if (name != null) await provider.addRelevantSubject(name);
+  }
+}
+
+/// Searchable list of subjects to add, with the typed text as a fallback.
+class _AddSubjectSheet extends StatefulWidget {
+  const _AddSubjectSheet({required this.options});
+
+  final List<String> options;
+
+  @override
+  State<_AddSubjectSheet> createState() => _AddSubjectSheetState();
+}
+
+class _AddSubjectSheetState extends State<_AddSubjectSheet> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final query = _controller.text.trim();
+    final lower = query.toLowerCase();
+    final matches = widget.options
+        .where((o) => o.toLowerCase().contains(lower))
+        .toList();
+    final exact = widget.options.any((o) => o.toLowerCase() == lower);
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.7,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+              child: Text('Dodaj predmet', style: theme.textTheme.titleLarge),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
+                controller: _controller,
+                autofocus: widget.options.isEmpty,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search_rounded),
+                  hintText: 'Naziv predmeta',
+                ),
+                onChanged: (_) => setState(() {}),
+                onSubmitted: (value) {
+                  if (value.trim().isNotEmpty) {
+                    Navigator.of(context).pop(value.trim());
+                  }
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView(
+                children: [
+                  if (query.isNotEmpty && !exact)
+                    ListTile(
+                      leading: const Icon(Icons.add_rounded),
+                      title: Text('Dodaj „$query“'),
+                      onTap: () => Navigator.of(context).pop(query),
+                    ),
+                  for (final option in matches)
+                    ListTile(
+                      leading: const Icon(Icons.menu_book_outlined),
+                      title: Text(option),
+                      onTap: () => Navigator.of(context).pop(option),
+                    ),
+                  if (matches.isEmpty && query.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        'Upiši naziv predmeta tačno kako piše na DLWMS-u.',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

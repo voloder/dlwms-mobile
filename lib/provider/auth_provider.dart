@@ -145,7 +145,7 @@ class AuthProvider extends ChangeNotifier {
     await CredentialStore.clearPassword(_prefs);
     await DlwmsWatchers.reset(_prefs);
     await ExamReminders.clear(_prefs);
-    await RelevantSubjects.clear(_prefs);
+    await RelevantSubjects.clear(_prefs, includeEdits: false);
     await CheckStatus.clear(_prefs);
     _errorMessage = null;
     state = AuthProviderState.unauthenticated;

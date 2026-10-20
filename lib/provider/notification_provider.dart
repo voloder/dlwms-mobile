@@ -10,6 +10,7 @@ import 'package:dlwms_mobile/services/relevant_subjects.dart';
 import 'package:dlwms_mobile/services/watchers.dart';
 import 'package:dlwms_mobile/util/html_utils.dart';
 import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum NotificationProviderState { loading, loaded, error }
 
@@ -124,6 +125,45 @@ class NotificationProvider extends ChangeNotifier {
       _loadingSubjects = false;
       notifyListeners();
     }
+  }
+
+  bool get relevantSubjectsEdited {
+    final prefs = _authProvider?.prefs;
+    return prefs != null && RelevantSubjects.hasEdits(prefs);
+  }
+
+  bool isAddedByUser(String subject) {
+    final prefs = _authProvider?.prefs;
+    return prefs != null && RelevantSubjects.isAddedByUser(prefs, subject);
+  }
+
+  /// Subjects the user can add: everything seen on DLWMS and in the loaded
+  /// announcements that isn't in the list yet.
+  List<String> get addableSubjects {
+    final prefs = _authProvider?.prefs;
+    if (prefs == null) return const [];
+    return RelevantSubjects.candidates(prefs, extra: [
+      for (final n in _notifications ?? const <DlwmsNotification>[])
+        if (n.subject.trim().isNotEmpty) n.subject,
+    ]);
+  }
+
+  Future<void> addRelevantSubject(String subject) =>
+      _editSubjects((prefs) => RelevantSubjects.add(prefs, subject));
+
+  Future<void> removeRelevantSubject(String subject) =>
+      _editSubjects((prefs) => RelevantSubjects.remove(prefs, subject));
+
+  Future<void> resetRelevantSubjects() =>
+      _editSubjects(RelevantSubjects.resetEdits);
+
+  Future<void> _editSubjects(
+      Future<void> Function(SharedPreferences prefs) edit) async {
+    final prefs = _authProvider?.prefs;
+    if (prefs == null) return;
+    await edit(prefs);
+    _relevantSubjects = RelevantSubjects.cached(prefs);
+    notifyListeners();
   }
 
   bool _fetching = false;

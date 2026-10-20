@@ -192,6 +192,23 @@ void main() {
       await _settle(tester, 4);
       await _shot(tester, '${mode}_8_postavke_obavijesti');
 
+      await tester.tap(find.text('Prikaži samo relevantne obavijesti'));
+      await _settle(tester);
+      await tester.scrollUntilVisible(
+        find.text('Dodaj predmet'),
+        300,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.drag(find.byType(Scrollable).last, const Offset(0, -250));
+      await _settle(tester, 4);
+      await _shot(tester, '${mode}_9_relevantni_predmeti');
+
+      await tester.tap(find.text('Dodaj predmet'));
+      await _settle(tester, 6);
+      await _shot(tester, '${mode}_10_dodaj_predmet');
+      await tester.tapAt(const Offset(200, 40));
+      await _settle(tester, 4);
+
       // Unmount so provider timers are cancelled before the test ends.
       await tester.pumpWidget(const SizedBox());
       await _settle(tester, 2);

@@ -17,12 +17,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 ///
 /// Announcements without a subject (faculty-wide notices) are always relevant.
 ///
-/// The list is cached in SharedPreferences so the background service can use
-/// it too, and refreshed at most every [maxAge].
+/// The user can edit the result: subjects they add or remove are kept as
+/// separate overrides, so the automatic list can still refresh underneath.
+///
+/// Everything lives in SharedPreferences so the background service can use
+/// it too. The automatic list is refreshed at most every [maxAge].
 class RelevantSubjects {
   static const String enabledKey = 'relevant_only';
   static const String _subjectsKey = 'relevant_subjects';
   static const String _updatedKey = 'relevant_subjects_updated';
+  static const String _addedKey = 'relevant_subjects_added';
+  static const String _removedKey = 'relevant_subjects_removed';
+  static const String _knownKey = 'relevant_subjects_known';
   static const Duration maxAge = Duration(hours: 12);
 
   static bool isEnabled(SharedPreferences prefs) =>
@@ -40,22 +46,34 @@ class RelevantSubjects {
       .trim()
       .toLowerCase();
 
-  /// Downloads the Nastava and Uspjeh pages and builds the subject list.
-  static Future<List<String>> fetch(DlwmsClient client) async {
+  /// Downloads the Nastava and Uspjeh pages and builds the automatic list,
+  /// plus every subject seen there (offered when adding one by hand).
+  static Future<({List<String> relevant, List<String> known})> fetch(
+      DlwmsClient client) async {
     final nastava =
         NastavaService.parseNastavaPage(await client.fetch(DlwmsClient.nastavaUrl));
     final uspjeh =
         UspjehService.parseUspjehPage(await client.fetch(DlwmsClient.uspjehUrl));
 
-    return combine(
-      currentYearSubjects: [
-        for (final option in nastava.subjectOptions)
-          if (option.value.isNotEmpty) option.label,
-      ],
-      ungradedSubjects: [
-        for (final group in uspjeh.pending)
-          for (final exam in group.exams) exam.subject,
-      ],
+    final currentYear = [
+      for (final option in nastava.subjectOptions)
+        if (option.value.isNotEmpty) option.label,
+    ];
+    final ungraded = [
+      for (final group in uspjeh.pending)
+        for (final exam in group.exams) exam.subject,
+    ];
+    final passed = [
+      for (final group in uspjeh.passed)
+        for (final exam in group.exams) exam.subject,
+    ];
+
+    return (
+      relevant: combine(
+          currentYearSubjects: currentYear, ungradedSubjects: ungraded),
+      known: combine(
+          currentYearSubjects: [...currentYear, ...passed],
+          ungradedSubjects: ungraded),
     );
   }
 
@@ -75,15 +93,103 @@ class RelevantSubjects {
     return names;
   }
 
-  /// Cached subject names, or null if they were never loaded.
-  static List<String>? cached(SharedPreferences prefs) {
-    final raw = prefs.getString(_subjectsKey);
+  static List<String>? _readList(SharedPreferences prefs, String key) {
+    final raw = prefs.getString(key);
     if (raw == null) return null;
     try {
       return (jsonDecode(raw) as List).cast<String>();
     } catch (_) {
       return null;
     }
+  }
+
+  static Future<void> _writeList(
+          SharedPreferences prefs, String key, Iterable<String> values) =>
+      prefs.setString(key, jsonEncode(values.toList()));
+
+  /// The automatic list from DLWMS, or null if it was never loaded.
+  static List<String>? automatic(SharedPreferences prefs) =>
+      _readList(prefs, _subjectsKey);
+
+  /// Subjects the user added by hand.
+  static List<String> added(SharedPreferences prefs) =>
+      _readList(prefs, _addedKey) ?? const [];
+
+  /// Normalised names of automatic subjects the user removed.
+  static Set<String> removed(SharedPreferences prefs) =>
+      (_readList(prefs, _removedKey) ?? const []).toSet();
+
+  static bool hasEdits(SharedPreferences prefs) =>
+      added(prefs).isNotEmpty || removed(prefs).isNotEmpty;
+
+  /// The list in effect: automatic minus removed plus added. Null only when
+  /// nothing was ever loaded or added.
+  static List<String>? cached(SharedPreferences prefs) {
+    final auto = automatic(prefs);
+    final extra = added(prefs);
+    if (auto == null && extra.isEmpty) return null;
+
+    final gone = removed(prefs);
+    return combine(
+      currentYearSubjects: [
+        for (final name in auto ?? const <String>[])
+          if (!gone.contains(normalize(name))) name,
+      ],
+      ungradedSubjects: extra,
+    );
+  }
+
+  /// Whether [name] is in the list only because the user added it.
+  static bool isAddedByUser(SharedPreferences prefs, String name) {
+    final key = normalize(name);
+    return added(prefs).any((n) => normalize(n) == key);
+  }
+
+  /// Subjects that could be added: everything seen on DLWMS (plus [extra],
+  /// e.g. subjects of loaded announcements) that isn't in the list yet.
+  static List<String> candidates(SharedPreferences prefs,
+      {Iterable<String> extra = const []}) {
+    final current = (cached(prefs) ?? const []).map(normalize).toSet();
+    return combine(
+      currentYearSubjects: [
+        ...?_readList(prefs, _knownKey),
+        ...?automatic(prefs),
+      ],
+      ungradedSubjects: extra.toList(),
+    ).where((n) => !current.contains(normalize(n))).toList();
+  }
+
+  static Future<void> add(SharedPreferences prefs, String name) async {
+    final clean = name.replaceAll('*', '').trim();
+    if (clean.isEmpty) return;
+    final key = normalize(clean);
+
+    final gone = removed(prefs);
+    if (gone.remove(key)) await _writeList(prefs, _removedKey, gone);
+
+    final inAuto = (automatic(prefs) ?? const []).any((n) => normalize(n) == key);
+    final extra = added(prefs);
+    if (!inAuto && !extra.any((n) => normalize(n) == key)) {
+      await _writeList(prefs, _addedKey, [...extra, clean]);
+    }
+  }
+
+  static Future<void> remove(SharedPreferences prefs, String name) async {
+    final key = normalize(name);
+    final extra = added(prefs);
+    if (extra.any((n) => normalize(n) == key)) {
+      await _writeList(
+          prefs, _addedKey, extra.where((n) => normalize(n) != key));
+    }
+    if ((automatic(prefs) ?? const []).any((n) => normalize(n) == key)) {
+      await _writeList(prefs, _removedKey, {...removed(prefs), key});
+    }
+  }
+
+  /// Drops the user's changes and goes back to the automatic list.
+  static Future<void> resetEdits(SharedPreferences prefs) async {
+    await prefs.remove(_addedKey);
+    await prefs.remove(_removedKey);
   }
 
   static DateTime? lastUpdated(SharedPreferences prefs) {
@@ -93,7 +199,7 @@ class RelevantSubjects {
 
   static bool isStale(SharedPreferences prefs) {
     final updated = lastUpdated(prefs);
-    return cached(prefs) == null ||
+    return automatic(prefs) == null ||
         updated == null ||
         DateTime.now().difference(updated) > maxAge;
   }
@@ -109,20 +215,26 @@ class RelevantSubjects {
     if (!force && !isStale(prefs)) return cached(prefs);
 
     try {
-      final names = await fetch(client);
-      if (names.isNotEmpty) {
-        await prefs.setString(_subjectsKey, jsonEncode(names));
+      final result = await fetch(client);
+      if (result.relevant.isNotEmpty) {
+        await _writeList(prefs, _subjectsKey, result.relevant);
+        await _writeList(prefs, _knownKey, result.known);
         await prefs.setInt(_updatedKey, DateTime.now().millisecondsSinceEpoch);
       }
-      return names.isEmpty ? cached(prefs) : names;
     } catch (_) {
-      return cached(prefs);
+      // Keep using the cached list.
     }
+    return cached(prefs);
   }
 
-  static Future<void> clear(SharedPreferences prefs) async {
+  /// Forgets the downloaded lists. The user's changes are kept unless
+  /// [includeEdits] (when a different student logs in).
+  static Future<void> clear(SharedPreferences prefs,
+      {bool includeEdits = true}) async {
     await prefs.remove(_subjectsKey);
     await prefs.remove(_updatedKey);
+    await prefs.remove(_knownKey);
+    if (includeEdits) await resetEdits(prefs);
   }
 
   static bool isRelevant(DlwmsNotification notification, Set<String> keys) =>
